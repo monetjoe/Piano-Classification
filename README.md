@@ -1,14 +1,16 @@
 # AlexNet-Piano-Classification
 
-Classifying Cell Images Using Deep Learning Models
+Classify piano acoustic fidelity by AlexNet
 
-[![license](https://img.shields.io/github/license/george-chou/AlexNet-Piano-Classification.svg)](https://github.com/george-chou/AlexNet-Piano-Classification/blob/master/LICENSE)
+<!-- [![license](https://img.shields.io/github/license/george-chou/AlexNet-Piano-Classification.svg)](https://github.com/george-chou/AlexNet-Piano-Classification/blob/master/LICENSE)
 [![Python application](https://github.com/george-chou/AlexNet-Piano-Classification/workflows/Python%20application/badge.svg)](https://github.com/george-chou/AlexNet-Piano-Classification/actions)
-[![Github All Releases](https://img.shields.io/github/downloads-pre/george-chou/AlexNet-Piano-Classification/v1.2/total)](https://github.com/george-chou/AlexNet-Piano-Classification/releases)
+[![Github All Releases](https://img.shields.io/github/downloads-pre/george-chou/AlexNet-Piano-Classification/v1.2/total)](https://github.com/george-chou/AlexNet-Piano-Classification/releases) -->
 
-## Wiki
+## Dataset
 
-<https://github.com/george-chou/AlexNet-Piano-Classification/wiki>
+Download at <https://github.com/george-chou/AlexNet-Piano-Classification/releases/download/v0.1/audio.zip>
+
+Extract it into the project directory
 
 ## Usage
 
