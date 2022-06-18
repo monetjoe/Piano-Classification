@@ -124,7 +124,6 @@ def load_data(img_dir, data_dir):
         for filename in trainset:
             copy_img(filename, tra_dir)
 
-    print('Data loaded.')
 
 
 def copy_img(img_name, tag_dir):
@@ -153,3 +152,4 @@ def prepare_data():
 if __name__ == "__main__":
     # prepare_data()
     load_data(img_dir, data_dir)
+    print('Data loaded.')

@@ -2,11 +2,11 @@
 import csv
 import time
 import torch
-import torch.nn as nn
+from datetime import datetime
 import torch.utils.data
 import torch.optim as optim
 from alexnet import AlexNet
-from data import prepare_data, create_dir
+from data import prepare_data, create_dir, classes
 from focaloss import FocalLoss
 from plotter import save_acc, save_loss
 
@@ -83,7 +83,7 @@ def save_history(tra_acc_list, val_acc_list, loss_list):
 
 
 def train(epoch_num=40, iteration=10, lr=0.001):
-    print('Start training...')
+    print('Loading data...')
     tra_acc_list, val_acc_list, loss_list = [], [], []
 
     # print(device)
@@ -91,13 +91,14 @@ def train(epoch_num=40, iteration=10, lr=0.001):
 
     # load data
     trainLoader, validLoader, testLoader = prepare_data()
+    print('Data loaded.')
 
     # init model
     model = AlexNet()
 
     #optimizer and loss
     # criterion = nn.CrossEntropyLoss()
-    criterion = FocalLoss(class_num=7)
+    criterion = FocalLoss(class_num=len(classes))
     optimizer = optim.SGD(model.classifier.parameters(), lr, momentum=0.9)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode='min', factor=0.1, patience=5, verbose=True,
@@ -113,6 +114,8 @@ def train(epoch_num=40, iteration=10, lr=0.001):
                 state[k] = v.cuda()
 
     # train process
+    start_timestamp = datetime.now()
+    print('Start training at ' + start_timestamp.strftime("%Y-%m-%d %H:%M:%S"))
     for epoch in range(epoch_num):  # loop over the dataset multiple times
         epoch_str = f' Epoch {epoch + 1}/{epoch_num} '
         print(f'{epoch_str:-^40s}')
@@ -142,12 +145,16 @@ def train(epoch_num=40, iteration=10, lr=0.001):
         eval_model_validation(model, validLoader, device, val_acc_list)
         scheduler.step(loss.item())
 
-    print('Finished Training')
+    finish_timestamp = datetime.now()
+    time_cost = finish_timestamp - start_timestamp
     eval_model_test(model, testLoader, device)
     log_dir = save_history(tra_acc_list, val_acc_list, loss_list)
     torch.save(model, log_dir + '/save.pt')
+    print('Start time : ' + start_timestamp.strftime("%Y-%m-%d %H:%M:%S"))
+    print('Finished time : ' + finish_timestamp.strftime("%Y-%m-%d %H:%M:%S"))
+    print('Time cost : ' + str(time_cost.seconds) + 's')
 
 
 if __name__ == "__main__":
 
-    train(epoch_num=40)
+    train(epoch_num=1)
