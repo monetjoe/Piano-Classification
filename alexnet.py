@@ -4,7 +4,7 @@ import requests
 import torch.nn as nn
 import torchvision.models as models
 from tqdm import tqdm
-from data import create_dir
+from data import create_dir, classes
 
 
 def url_download(url: str, fname: str):
@@ -45,6 +45,7 @@ def AlexNet():
     for parma in model.parameters():
         parma.requires_grad = False
 
+    class_num = len(classes)
     model.classifier = torch.nn.Sequential(nn.Dropout(),
                                            nn.Linear(256 * 6 * 6, 4096),
                                            nn.ReLU(inplace=True),
@@ -54,6 +55,6 @@ def AlexNet():
                                            nn.Dropout(0.5),
                                            nn.Linear(4096, 1000),
                                            nn.ReLU(inplace=True),
-                                           nn.Linear(1000, 7))
+                                           nn.Linear(1000, class_num))
 
     return model
