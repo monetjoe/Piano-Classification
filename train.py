@@ -157,4 +157,4 @@ def train(epoch_num=40, iteration=10, lr=0.001):
 
 if __name__ == "__main__":
 
-    train(epoch_num=1)
+    train(epoch_num=40)
