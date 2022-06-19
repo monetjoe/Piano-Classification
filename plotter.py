@@ -62,7 +62,7 @@ def save_acc(tra_acc_list, val_acc_list, save_path):
     show_point(max1, y1)
     show_point(max2, y2)
     plt.legend()
-    plt.savefig(save_path)
+    plt.savefig(save_path + "/acc.png")
     plt.close()
 
 
@@ -75,7 +75,7 @@ def save_loss(loss_list, save_path):
     plt.xlabel('Iteration')
     plt.ylabel('Loss')
     plt.plot(x_loss, smooth(loss_list))
-    plt.savefig(save_path)
+    plt.savefig(save_path + "/loss.png")
     plt.close()
 
 

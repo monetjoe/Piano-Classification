@@ -36,14 +36,18 @@ def unzip_file(zip_src, dst_dir):
 
 
 def trans(audio_dir, img_dir):
+    print('Pre-processing data...')
     create_dir(img_dir)
 
     if len(os.listdir(img_dir)) > 0:
+        print('Data already pre-processed.')
         return
 
     for _, dirnames, _ in os.walk(audio_dir):
         for dirname in dirnames:
             trans_files(audio_dir + '/' + dirname, img_dir)
+
+    print('Data pre-processed.')
 
 
 def trans_files(cls_dir, img_dir):
@@ -97,7 +101,7 @@ def embedding(file_path):
 
 
 def load_data(img_dir, data_dir):
-
+    print('Loading data...')
     if os.path.exists(data_dir):
         shutil.rmtree(data_dir)
 
@@ -124,6 +128,7 @@ def load_data(img_dir, data_dir):
         for filename in trainset:
             copy_img(filename, tra_dir)
 
+    print('Data loaded.')
 
 
 def copy_img(img_name, tag_dir):
@@ -142,9 +147,11 @@ def prepare_data():
     trans(audio_dir, img_dir)
     load_data(img_dir, data_dir)
 
+    print('Embedding data...')
     trainLoader = embedding(tra_dir)
     validLoader = embedding(val_dir)
     testLoader = embedding(tes_dir)
+    print('Data embedded.')
 
     return trainLoader, validLoader, testLoader
 
@@ -152,4 +159,3 @@ def prepare_data():
 if __name__ == "__main__":
     # prepare_data()
     load_data(img_dir, data_dir)
-    print('Data loaded.')
