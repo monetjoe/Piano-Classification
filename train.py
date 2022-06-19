@@ -2,6 +2,7 @@
 import csv
 import time
 import torch
+import torch.nn as nn
 from datetime import datetime
 import torch.utils.data
 import torch.optim as optim
@@ -21,11 +22,13 @@ def eval_model_train(model, trainLoader, device, tra_acc_list):
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
-    print('Accuracy of trainloader: %d %%' % (100 * correct / total))
-    tra_acc_list.append(100 * correct / total)
+
+    acc = 100.0 * correct / total
+    print('Accuracy of training    : ' + str(round(acc, 2)) + '%')
+    tra_acc_list.append(acc)
 
 
-def eval_model_validation(model, validationLoader, device, val_acc_list):
+def eval_model_valid(model, validationLoader, device, val_acc_list):
     correct = 0
     total = 0
     with torch.no_grad():
@@ -35,8 +38,10 @@ def eval_model_validation(model, validationLoader, device, val_acc_list):
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
-    print('Accuracy of validationloader: %d %%' % (100 * correct / total))
-    val_acc_list.append(100 * correct / total)
+
+    acc = 100.0 * correct / total
+    print('Accuracy of validation  : ' + str(round(acc, 2)) + '%')
+    val_acc_list.append(acc)
 
 
 def eval_model_test(model, testLoader, device):
@@ -49,15 +54,39 @@ def eval_model_test(model, testLoader, device):
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
-    print('Accuracy of test: %d %%' % (100 * correct / total))
+
+    return 100.0 * correct / total
 
 
-def time_stamp():
-    now = int(round(time.time()*1000))
-    return time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime(now / 1000))
+def time_stamp(timestamp=None):
+    if timestamp != None:
+        return timestamp.strftime("%Y-%m-%d %H:%M:%S")
+
+    return time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime(time.time()))
 
 
-def save_history(tra_acc_list, val_acc_list, loss_list):
+def save_log(start_time, finish_time, test_acc, log_dir):
+
+    log_test_acc = 'Test acc     : '
+    log_start_time = 'Start time   : ' + time_stamp(start_time)
+    log_finish_time = 'Finish time  : ' + time_stamp(finish_time)
+    log_time_cost = 'Time cost    : ' + \
+        str((finish_time - start_time).seconds) + 's'
+
+    with open(log_dir + '/result.log', 'w', encoding='utf-8') as f:
+        f.write(log_test_acc + str(test_acc) + '%\n')
+        f.write(log_start_time + '\n')
+        f.write(log_finish_time + '\n')
+        f.write(log_time_cost)
+    f.close()
+
+    print(log_test_acc + str(round(test_acc, 2)) + '%')
+    print(log_start_time)
+    print(log_finish_time)
+    print(log_time_cost)
+
+
+def save_history(model, tra_acc_list, val_acc_list, loss_list, lr_list, test_acc, start_time, finish_time):
 
     log_dir = './logs/history_' + time_stamp()
     create_dir(log_dir)
@@ -65,9 +94,9 @@ def save_history(tra_acc_list, val_acc_list, loss_list):
     acc_len = len(tra_acc_list)
     with open(log_dir + "/acc.csv", "w", newline='') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(["tra_acc_list", "val_acc_list"])
+        writer.writerow(["tra_acc_list", "val_acc_list", "lr_list"])
         for i in range(acc_len):
-            writer.writerow([tra_acc_list[i], val_acc_list[i]])
+            writer.writerow([tra_acc_list[i], val_acc_list[i], lr_list[i]])
 
     loss_len = len(loss_list)
     with open(log_dir + "/loss.csv", "w", newline='') as csvfile:
@@ -76,29 +105,30 @@ def save_history(tra_acc_list, val_acc_list, loss_list):
         for i in range(loss_len):
             writer.writerow([loss_list[i]])
 
-    save_acc(tra_acc_list, val_acc_list, log_dir + "/acc.png")
-    save_loss(loss_list, log_dir + "/loss.png")
+    torch.save(model, log_dir + '/save.pt')
+    print('Model saved.')
 
-    return log_dir
+    save_acc(tra_acc_list, val_acc_list, log_dir)
+    save_loss(loss_list, log_dir)
+    save_log(start_time, finish_time, test_acc, log_dir)
 
 
 def train(epoch_num=40, iteration=10, lr=0.001):
-    print('Loading data...')
-    tra_acc_list, val_acc_list, loss_list = [], [], []
+
+    tra_acc_list, val_acc_list, loss_list, lr_list = [], [], [], []
 
     # print(device)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # load data
     trainLoader, validLoader, testLoader = prepare_data()
-    print('Data loaded.')
 
     # init model
     model = AlexNet()
 
     #optimizer and loss
-    # criterion = nn.CrossEntropyLoss()
-    criterion = FocalLoss(class_num=len(classes))
+    criterion = nn.CrossEntropyLoss()
+    # criterion = FocalLoss(class_num=len(classes))
     optimizer = optim.SGD(model.classifier.parameters(), lr, momentum=0.9)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode='min', factor=0.1, patience=5, verbose=True,
@@ -114,12 +144,14 @@ def train(epoch_num=40, iteration=10, lr=0.001):
                 state[k] = v.cuda()
 
     # train process
-    start_timestamp = datetime.now()
-    print('Start training at ' + start_timestamp.strftime("%Y-%m-%d %H:%M:%S"))
+    start_time = datetime.now()
+    print('Start training at ' + time_stamp(start_time))
     for epoch in range(epoch_num):  # loop over the dataset multiple times
         epoch_str = f' Epoch {epoch + 1}/{epoch_num} '
+        lr_str = optimizer.param_groups[0]["lr"]
+        lr_list.append(lr_str)
         print(f'{epoch_str:-^40s}')
-        print(f'Learning rate: {optimizer.param_groups[0]["lr"]}')
+        print(f'Learning rate: {lr_str}')
         running_loss = 0.0
         for i, data in enumerate(trainLoader, 0):
             # get the inputs
@@ -142,17 +174,13 @@ def train(epoch_num=40, iteration=10, lr=0.001):
             running_loss = 0.0
 
         eval_model_train(model, trainLoader, device, tra_acc_list)
-        eval_model_validation(model, validLoader, device, val_acc_list)
+        eval_model_valid(model, validLoader, device, val_acc_list)
         scheduler.step(loss.item())
 
-    finish_timestamp = datetime.now()
-    time_cost = finish_timestamp - start_timestamp
-    eval_model_test(model, testLoader, device)
-    log_dir = save_history(tra_acc_list, val_acc_list, loss_list)
-    torch.save(model, log_dir + '/save.pt')
-    print('Start time : ' + start_timestamp.strftime("%Y-%m-%d %H:%M:%S"))
-    print('Finished time : ' + finish_timestamp.strftime("%Y-%m-%d %H:%M:%S"))
-    print('Time cost : ' + str(time_cost.seconds) + 's')
+    finish_time = datetime.now()
+    test_acc = eval_model_test(model, testLoader, device)
+    save_history(model, tra_acc_list, val_acc_list, loss_list,
+                 lr_list, test_acc, start_time, finish_time)
 
 
 if __name__ == "__main__":
