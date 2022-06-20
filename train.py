@@ -1,5 +1,6 @@
 
 import csv
+from string import digits
 import time
 import torch
 import torch.nn as nn
@@ -9,53 +10,58 @@ import torch.optim as optim
 from alexnet import AlexNet
 from data import prepare_data, create_dir, classes
 from focaloss import FocalLoss
-from plotter import save_acc, save_loss
+from plotter import save_acc, save_loss, save_confusion_matrix
+from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
+import numpy as np
+import warnings
+warnings.filterwarnings("ignore")
 
 
 def eval_model_train(model, trainLoader, device, tra_acc_list):
-    correct = 0
-    total = 0
+    y_true, y_pred = [], []
     with torch.no_grad():
         for data in trainLoader:
             images, labels = data[0].to(device), data[1].to(device)
             outputs = model(images)
             _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
+            y_true.extend(labels.tolist())
+            y_pred.extend(predicted.tolist())
 
-    acc = 100.0 * correct / total
+    acc = 100.0 * accuracy_score(y_true, y_pred)
     print('Accuracy of training    : ' + str(round(acc, 2)) + '%')
     tra_acc_list.append(acc)
 
 
 def eval_model_valid(model, validationLoader, device, val_acc_list):
-    correct = 0
-    total = 0
+    y_true, y_pred = [], []
     with torch.no_grad():
         for data in validationLoader:
             images, labels = data[0].to(device), data[1].to(device)
             outputs = model(images)
             _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
+            y_true.extend(labels.tolist())
+            y_pred.extend(predicted.tolist())
 
-    acc = 100.0 * correct / total
+    acc = 100.0 * accuracy_score(y_true, y_pred)
     print('Accuracy of validation  : ' + str(round(acc, 2)) + '%')
     val_acc_list.append(acc)
 
 
 def eval_model_test(model, testLoader, device):
-    correct = 0
-    total = 0
+    y_true, y_pred = [], []
     with torch.no_grad():
         for data in testLoader:
             images, labels = data[0].to(device), data[1].to(device)
             outputs = model(images)
             _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
+            y_true.extend(labels.tolist())
+            y_pred.extend(predicted.tolist())
 
-    return 100.0 * correct / total
+    report = classification_report(
+        y_true, y_pred, target_names=classes, digits=3)
+    cm = confusion_matrix(y_true, y_pred, normalize='all')
+
+    return report, cm
 
 
 def time_stamp(timestamp=None):
@@ -65,28 +71,33 @@ def time_stamp(timestamp=None):
     return time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime(time.time()))
 
 
-def save_log(start_time, finish_time, test_acc, log_dir):
+def save_log(start_time, finish_time, cls_report, cm, log_dir):
 
-    log_test_acc = 'Test acc     : '
     log_start_time = 'Start time   : ' + time_stamp(start_time)
     log_finish_time = 'Finish time  : ' + time_stamp(finish_time)
     log_time_cost = 'Time cost    : ' + \
         str((finish_time - start_time).seconds) + 's'
 
     with open(log_dir + '/result.log', 'w', encoding='utf-8') as f:
-        f.write(log_test_acc + str(test_acc) + '%\n')
+        f.write(cls_report + '\n')
         f.write(log_start_time + '\n')
         f.write(log_finish_time + '\n')
         f.write(log_time_cost)
     f.close()
 
-    print(log_test_acc + str(round(test_acc, 2)) + '%')
+    # save confusion_matrix
+    np.savetxt(log_dir + '/mat.csv', cm, delimiter=',')
+    save_confusion_matrix(cm, log_dir + '/mat.png')
+
+    print(cls_report)
+    print('Confusion matrix :')
+    print(str(cm.round(3)) + '\n')
     print(log_start_time)
     print(log_finish_time)
     print(log_time_cost)
 
 
-def save_history(model, tra_acc_list, val_acc_list, loss_list, lr_list, test_acc, start_time, finish_time):
+def save_history(model, tra_acc_list, val_acc_list, loss_list, lr_list, cls_report, cm, start_time, finish_time):
 
     log_dir = './logs/history_' + time_stamp()
     create_dir(log_dir)
@@ -110,7 +121,7 @@ def save_history(model, tra_acc_list, val_acc_list, loss_list, lr_list, test_acc
 
     save_acc(tra_acc_list, val_acc_list, log_dir)
     save_loss(loss_list, log_dir)
-    save_log(start_time, finish_time, test_acc, log_dir)
+    save_log(start_time, finish_time, cls_report, cm, log_dir)
 
 
 def train(epoch_num=40, iteration=10, lr=0.001):
@@ -178,11 +189,11 @@ def train(epoch_num=40, iteration=10, lr=0.001):
         scheduler.step(loss.item())
 
     finish_time = datetime.now()
-    test_acc = eval_model_test(model, testLoader, device)
+    cls_report, cm = eval_model_test(model, testLoader, device)
     save_history(model, tra_acc_list, val_acc_list, loss_list,
-                 lr_list, test_acc, start_time, finish_time)
+                 lr_list, cls_report, cm, start_time, finish_time)
 
 
 if __name__ == "__main__":
 
-    train(epoch_num=40)
+    train(epoch_num=5)

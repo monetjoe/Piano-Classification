@@ -2,9 +2,9 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-# from train import train
+from sklearn.metrics import confusion_matrix
 from scipy import signal as ss
-from data import create_dir
+from data import create_dir, classes
 
 
 def show_point(max_id, list):
@@ -28,7 +28,6 @@ def plot_acc(tra_acc_list, val_acc_list):
     max1 = np.argmax(y1)
     max2 = np.argmax(y2)
 
-    plt.subplot(121)
     plt.title('Accuracy of training and validation')
     plt.xlabel('Epoch')
     plt.ylabel('Acc(%)')
@@ -84,7 +83,6 @@ def plot_loss(loss_list):
     for i in range(len(loss_list)):
         x_loss.append(i + 1)
 
-    plt.subplot(122)
     plt.title('Loss curve')
     plt.xlabel('Iteration')
     plt.ylabel('Loss')
@@ -124,26 +122,72 @@ def load_history(log_dir='./logs', latest_log=''):
     tra_acc_list = acc_list['tra_acc_list'].tolist()
     val_acc_list = acc_list['val_acc_list'].tolist()
     loss_list = pd.read_csv(latest_loss)['loss_list'].tolist()
-    return tra_acc_list, val_acc_list, loss_list
+
+    cm = np.loadtxt(open(log_dir + latest_log + "/mat.csv", "rb"),
+                    delimiter=",", skiprows=0)
+
+    return tra_acc_list, val_acc_list, loss_list, cm
+
+
+def plot_confusion_matrix(cm, title='Confusion matrix', labels_name=classes):
+    cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]    # Normalized
+    # Display an image on a specific window
+    plt.imshow(cm, interpolation='nearest')
+    plt.title(title)    # image caption
+    plt.colorbar()
+    num_local = np.array(range(len(labels_name)))
+    # print the labels on the x-axis coordinates
+    plt.xticks(num_local, labels_name, rotation=90)
+    # print the label on the y-axis coordinate
+    plt.yticks(num_local, labels_name)
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+
+
+def save_confusion_matrix(cm, save_path, title='Confusion matrix', labels_name=classes):
+    cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]    # Normalized
+    # Display an image on a specific window
+    plt.imshow(cm, interpolation='nearest')
+    plt.title(title)    # image caption
+    plt.colorbar()
+    num_local = np.array(range(len(labels_name)))
+    # print the labels on the x-axis coordinates
+    plt.xticks(num_local, labels_name, rotation=90)
+    # print the label on the y-axis coordinate
+    plt.yticks(num_local, labels_name)
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    plt.tight_layout()
+    plt.savefig(save_path + '/mat.png')
+    plt.close()
 
 
 def plot_all(latest_log=''):
-    tra_acc_list, val_acc_list, loss_list = load_history(latest_log=latest_log)
+    tra_acc_list, val_acc_list, loss_list, cm = load_history(
+        latest_log=latest_log)
 
-    plt.figure(figsize=(12, 4.5))
+    plt.figure(figsize=(9, 7))
+    plt.subplot(221)
     plot_acc(tra_acc_list, val_acc_list)
+    plt.subplot(222)
     plot_loss(loss_list)
+    plt.subplot(224)
+    plot_confusion_matrix(cm)
+    # plt.subplots_adjust(wspace=0.5, hspace=0.5)
+    plt.tight_layout()
     plt.show()  # Plot latest log
 
 
 def save_all(latest_log):
-    tra_acc_list, val_acc_list, loss_list = load_history(latest_log=latest_log)
-    save_acc(tra_acc_list, val_acc_list, './logs/' + latest_log + '/acc.png')
-    save_loss(loss_list, './logs/' + latest_log + '/loss.png')
+    tra_acc_list, val_acc_list, loss_list, cm = load_history(
+        latest_log=latest_log)
+    save_acc(tra_acc_list, val_acc_list, './logs/' + latest_log)
+    save_loss(loss_list, './logs/' + latest_log)
+    save_confusion_matrix(cm, './logs/' + latest_log)
     print('Re-saved.')
 
 
 if __name__ == "__main__":
     plot_all()
     # plot_all(latest_log='history_2022-06-16_06-20-26')
-    # save_all('history_2022-06-16_06-20-26')
+    # save_all('history_2022-06-20_19-12-02')
