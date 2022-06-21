@@ -7,14 +7,20 @@ import torch.nn as nn
 from datetime import datetime
 import torch.utils.data
 import torch.optim as optim
-from alexnet import AlexNet
+from model import Model
 from data import prepare_data, create_dir, classes
 from focaloss import FocalLoss
 from plotter import save_acc, save_loss, save_confusion_matrix
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
 import numpy as np
+import argparse
 import warnings
 warnings.filterwarnings("ignore")
+
+parser = argparse.ArgumentParser(description='train')
+parser.add_argument('--model', type=str, default='alexnet',
+                    help='Select a pre-trained model.')
+args = parser.parse_args()
 
 
 def eval_model_train(model, trainLoader, device, tra_acc_list):
@@ -87,7 +93,7 @@ def save_log(start_time, finish_time, cls_report, cm, log_dir):
 
     # save confusion_matrix
     np.savetxt(log_dir + '/mat.csv', cm, delimiter=',')
-    save_confusion_matrix(cm, log_dir + '/mat.png')
+    save_confusion_matrix(cm, log_dir)
 
     print(cls_report)
     print('Confusion matrix :')
@@ -135,7 +141,7 @@ def train(epoch_num=40, iteration=10, lr=0.001):
     trainLoader, validLoader, testLoader = prepare_data()
 
     # init model
-    model = AlexNet()
+    model = Model(backbone=args.model)
 
     #optimizer and loss
     criterion = nn.CrossEntropyLoss()
@@ -196,4 +202,4 @@ def train(epoch_num=40, iteration=10, lr=0.001):
 
 if __name__ == "__main__":
 
-    train(epoch_num=5)
+    train(epoch_num=40)

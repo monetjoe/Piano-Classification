@@ -20,11 +20,10 @@ args = parser.parse_args()
 
 
 def embed(audio_path):
-
     img_path = audio_path[:-4] + '_' + time_stamp() + '.png'
     dur = get_duration_wav(audio_path)
     y, sr = librosa.load(audio_path, offset=0.0, duration=dur)
-    mel_spect = librosa.feature.melspectrogram(y=y, sr=sr)
+    mel_spect = librosa.feature.melspectrogram(y=y, sr=sr, n_fft=1024)
     mel_spect = librosa.power_to_db(mel_spect, ref=np.max)
     librosa.display.specshow(mel_spect)
     plt.axis('off')
