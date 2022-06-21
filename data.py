@@ -54,7 +54,7 @@ def trans_files(cls_dir, img_dir):
     for _, _, filenames in os.walk(cls_dir):
         print('Converting ' + cls_dir.split('/')[-1] + '...')
         for filename in filenames:
-            to_mel(cls_dir + '/' + filename, img_dir)
+            to_mel(cls_dir + '/' + filename, img_dir, width=0.2)
 
 
 def get_duration_wav(audio_path):
@@ -72,8 +72,8 @@ def to_mel(audio_path, img_dir, width=1.0, step=0.2):
     for i in np.arange(0.0, dur - width + step, step):
         index = round(i, 1)
         outpath = img_dir + '/' + audio_name + '[' + str(index) + '].png'
-        y, sr = librosa.load(audio_path, offset=index, duration=1)
-        mel_spect = librosa.feature.melspectrogram(y=y, sr=sr)
+        y, sr = librosa.load(audio_path, offset=index, duration=width)
+        mel_spect = librosa.feature.melspectrogram(y=y, sr=sr, n_fft=1024)
         mel_spect = librosa.power_to_db(mel_spect, ref=np.max)
         librosa.display.specshow(mel_spect)
         plt.axis('off')
@@ -157,5 +157,5 @@ def prepare_data():
 
 
 if __name__ == "__main__":
-    # prepare_data()
-    load_data(img_dir, data_dir)
+    trans(audio_dir, img_dir)
+    # load_data(img_dir, data_dir)
