@@ -188,6 +188,6 @@ def save_all(latest_log):
 
 
 if __name__ == "__main__":
-    # plot_all()
+    plot_all()
     # plot_all(latest_log='history_2022-06-16_06-20-26')
-    save_all('history_2022-06-20_20-55-57')
+    # save_all('history_2022-06-20_20-55-57')

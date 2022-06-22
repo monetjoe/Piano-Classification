@@ -70,23 +70,50 @@ def download_model(backbone='alexnet'):
     return pre_model_path
 
 
-def Model(backbone='alexnet'):
-    pre_model_path = download_model(backbone)
+def Net(backbone='alexnet'):
     model = eval('models.%s()' % backbone)
+    pre_model_path = download_model(backbone)
     model.load_state_dict(torch.load(pre_model_path))
 
     for parma in model.parameters():
         parma.requires_grad = False
 
-    model.classifier = torch.nn.Sequential(nn.Dropout(),
-                                           nn.Linear(256 * 6 * 6, 4096),
-                                           nn.ReLU(inplace=True),
-                                           nn.Dropout(),
-                                           nn.Linear(4096, 4096),
-                                           nn.ReLU(inplace=True),
-                                           nn.Dropout(0.5),
-                                           nn.Linear(4096, 1000),
-                                           nn.ReLU(inplace=True),
-                                           nn.Linear(1000, len(classes)))
+    model.classifier = torch.nn.Sequential(
+        nn.Dropout(),
+        nn.Linear(256 * 6 * 6, 4096),
+        nn.ReLU(inplace=True),
+        nn.Dropout(),
+        nn.Linear(4096, 4096),
+        nn.ReLU(inplace=True),
+        nn.Dropout(),
+        nn.Linear(4096, 1000),
+        nn.ReLU(inplace=True),
+        nn.Linear(1000, len(classes))
+    )
+
+    model.train()
+
+    return model
+
+
+def Net_eval(saved_model_path, backbone):
+
+    model = eval('models.%s()' % backbone)
+    model.classifier = torch.nn.Sequential(
+        nn.Dropout(),
+        nn.Linear(256 * 6 * 6, 4096),
+        nn.ReLU(inplace=True),
+        nn.Dropout(),
+        nn.Linear(4096, 4096),
+        nn.ReLU(inplace=True),
+        nn.Dropout(),
+        nn.Linear(4096, 1000),
+        nn.ReLU(inplace=True),
+        nn.Linear(1000, len(classes))
+    )
+
+    checkpoint = torch.load(saved_model_path)
+    model.load_state_dict(checkpoint, False)
+    model.eval()
 
     return model
