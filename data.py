@@ -89,9 +89,9 @@ def create_dir(dir):
 def embedding(file_path):
     # dataset
     transform = transforms.Compose([
-        transforms.Resize(300),
-        transforms.CenterCrop(300),
-        transforms.RandomAffine(5),
+        # transforms.Resize([224, 224]),
+        # transforms.CenterCrop(300),
+        # transforms.RandomAffine(5),
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
@@ -100,9 +100,14 @@ def embedding(file_path):
     return torch.utils.data.DataLoader(inputSet, batch_size=4, shuffle=True, num_workers=2)
 
 
-def load_data(img_dir, data_dir):
+def load_data(img_dir, data_dir, force_reload=True):
     print('Loading data...')
-    if os.path.exists(data_dir):
+
+    if os.path.exists(data_dir) and not force_reload:
+        print('Data already loaded.')
+        return
+
+    if os.path.exists(data_dir) and force_reload:
         shutil.rmtree(data_dir)
 
     create_dir(data_dir)
@@ -145,7 +150,7 @@ def prepare_data():
         unzip_file('./audio.zip', './')
 
     trans(audio_dir, img_dir)
-    load_data(img_dir, data_dir)
+    load_data(img_dir, data_dir, force_reload=False)
 
     print('Embedding data...')
     trainLoader = embedding(tra_dir)
@@ -158,4 +163,4 @@ def prepare_data():
 
 if __name__ == "__main__":
     trans(audio_dir, img_dir)
-    # load_data(img_dir, data_dir)
+    load_data(img_dir, data_dir)

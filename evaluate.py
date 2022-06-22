@@ -1,22 +1,16 @@
+from train import train, time_stamp
 import os
 import torch
 import argparse
 import torchvision.transforms as transforms
 from PIL import Image
-from train import train, time_stamp
 from plotter import get_latest_log, valid_path
 from data import get_duration_wav, classes
 import numpy as np
 import matplotlib.pyplot as plt
 import librosa
 import librosa.display
-
-parser = argparse.ArgumentParser(description='predict')
-parser.add_argument('--target', type=str,
-                    default='./test/KAWAI-C4.wav', help='Select wav to be predicted.')
-parser.add_argument('--log', type=str,
-                    default='', help='Select a training history.')
-args = parser.parse_args()
+from model import Net_eval
 
 
 def embed(audio_path):
@@ -33,45 +27,64 @@ def embed(audio_path):
     return embed_img(img_path)
 
 
-def embed_img(img_path):
+def embed_img(img_path, rm_cache=True):
     transform = transforms.Compose([
-        transforms.Resize(300),
-        transforms.CenterCrop(300),
-        transforms.RandomAffine(5),
+        # transforms.Resize([224, 224]),
+        # transforms.CenterCrop(300),
+        # transforms.RandomAffine(5),
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
 
     img = Image.open(img_path).convert("RGB")
 
-    if os.path.exists(img_path):
+    if rm_cache and os.path.exists(img_path):
         os.remove(img_path)
 
     return transform(img)
 
 
-def eval(log_dir='./logs', latest_log=''):
+def eval(log_dir='./logs', history=''):
 
-    if valid_path(log_dir, latest_log):
-        latest_log = '/' + latest_log
+    tag = args.target
+
+    if not os.path.exists(tag):
+        print('Target not found.')
+        exit()
+
+    if valid_path(log_dir, history):
+        history = '/' + history
     else:
-        latest_log = get_latest_log(log_dir)
+        history = get_latest_log(log_dir)
 
-    saved_model_path = log_dir + latest_log + '/save.pt'
+    saved_model_path = log_dir + history + '/save.pt'
 
     if not os.path.exists(saved_model_path):
         print('No history found, start a new term of training...')
         train()
 
-    model = torch.load(saved_model_path)
-    torch.cuda.empty_cache()
-    model = model.cuda()
-    input = embed(args.target).cuda()
-    output = model(input.unsqueeze(0))
-    predict = torch.max(output.data, 1)[1]
-    print(classes[predict])
+    model = Net_eval(saved_model_path, 'alexnet')
+    input = embed(tag).unsqueeze(0)
+
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        model = model.cuda()
+        input = input.cuda()
+
+    with torch.no_grad():
+        output = model(input)
+        print(output)
+        pred_id = torch.max(output.data, 1)[1]
+        predict = classes[pred_id]
+        print(predict)
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='predict')
+    parser.add_argument('--target', type=str,
+                        default='./test/KAWAI.wav', help='Select wav to be predicted.')
+    parser.add_argument('--log', type=str,
+                        default='', help='Select a training history.')
+    args = parser.parse_args()
     # eval(latest_log=args.log)
     eval()

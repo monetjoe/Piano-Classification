@@ -7,7 +7,7 @@ import torch.nn as nn
 from datetime import datetime
 import torch.utils.data
 import torch.optim as optim
-from model import Model
+from model import Net
 from data import prepare_data, create_dir, classes
 from focaloss import FocalLoss
 from plotter import save_acc, save_loss, save_confusion_matrix
@@ -16,11 +16,6 @@ import numpy as np
 import argparse
 import warnings
 warnings.filterwarnings("ignore")
-
-parser = argparse.ArgumentParser(description='train')
-parser.add_argument('--model', type=str, default='alexnet',
-                    help='Select a pre-trained model.')
-args = parser.parse_args()
 
 
 def eval_model_train(model, trainLoader, device, tra_acc_list):
@@ -79,6 +74,7 @@ def time_stamp(timestamp=None):
 
 def save_log(start_time, finish_time, cls_report, cm, log_dir):
 
+    log_backbone = 'Backbone     : ' + args.model
     log_start_time = 'Start time   : ' + time_stamp(start_time)
     log_finish_time = 'Finish time  : ' + time_stamp(finish_time)
     log_time_cost = 'Time cost    : ' + \
@@ -86,6 +82,7 @@ def save_log(start_time, finish_time, cls_report, cm, log_dir):
 
     with open(log_dir + '/result.log', 'w', encoding='utf-8') as f:
         f.write(cls_report + '\n')
+        f.write(log_backbone + '\n')
         f.write(log_start_time + '\n')
         f.write(log_finish_time + '\n')
         f.write(log_time_cost)
@@ -98,6 +95,7 @@ def save_log(start_time, finish_time, cls_report, cm, log_dir):
     print(cls_report)
     print('Confusion matrix :')
     print(str(cm.round(3)) + '\n')
+    print(log_backbone)
     print(log_start_time)
     print(log_finish_time)
     print(log_time_cost)
@@ -122,7 +120,7 @@ def save_history(model, tra_acc_list, val_acc_list, loss_list, lr_list, cls_repo
         for i in range(loss_len):
             writer.writerow([loss_list[i]])
 
-    torch.save(model, log_dir + '/save.pt')
+    torch.save(model.state_dict(), log_dir + '/save.pt')
     print('Model saved.')
 
     save_acc(tra_acc_list, val_acc_list, log_dir)
@@ -133,15 +131,14 @@ def save_history(model, tra_acc_list, val_acc_list, loss_list, lr_list, cls_repo
 def train(epoch_num=40, iteration=10, lr=0.001):
 
     tra_acc_list, val_acc_list, loss_list, lr_list = [], [], [], []
-
-    # print(device)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # load data
     trainLoader, validLoader, testLoader = prepare_data()
 
     # init model
-    model = Model(backbone=args.model)
+    model = Net(backbone=args.model)
+    # print(model)
 
     #optimizer and loss
     criterion = nn.CrossEntropyLoss()
@@ -151,14 +148,15 @@ def train(epoch_num=40, iteration=10, lr=0.001):
         optimizer, mode='min', factor=0.1, patience=5, verbose=True,
         threshold=lr, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-08)
 
-    # gpu
-    torch.cuda.empty_cache()
-    model = model.cuda()
-    criterion = criterion.cuda()
+    # device
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+    model = model.to(device)
+    criterion = criterion.to(device)
     for state in optimizer.state.values():
         for k, v in state.items():
             if isinstance(v, torch.Tensor):
-                state[k] = v.cuda()
+                state[k] = v.to(device)
 
     # train process
     start_time = datetime.now()
@@ -172,7 +170,7 @@ def train(epoch_num=40, iteration=10, lr=0.001):
         running_loss = 0.0
         for i, data in enumerate(trainLoader, 0):
             # get the inputs
-            inputs, labels = data[0].cuda(), data[1].cuda()
+            inputs, labels = data[0].to(device), data[1].to(device)
             # zero the parameter gradients
             optimizer.zero_grad()
 
@@ -201,5 +199,9 @@ def train(epoch_num=40, iteration=10, lr=0.001):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='train')
+    parser.add_argument('--model', type=str, default='alexnet',
+                        help='Select a pre-trained model.')
+    args = parser.parse_args()
 
     train(epoch_num=40)
