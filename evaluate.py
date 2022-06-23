@@ -5,18 +5,18 @@ import argparse
 import torchvision.transforms as transforms
 from PIL import Image
 from plotter import get_latest_log, valid_path
-from data import get_duration_wav, classes
+from data import get_duration_wav, classes, input_size
 import numpy as np
 import matplotlib.pyplot as plt
 import librosa
 import librosa.display
-from model import Net_eval
+from model import Net_eval, backbone_network
 
 
 def embed(audio_path):
     img_path = audio_path[:-4] + '_' + time_stamp() + '.png'
     dur = get_duration_wav(audio_path)
-    y, sr = librosa.load(audio_path, offset=0.0, duration=dur)
+    y, sr = librosa.load(audio_path, offset=(dur-1)*0.5, duration=1.0)
     mel_spect = librosa.feature.melspectrogram(y=y, sr=sr, n_fft=1024)
     mel_spect = librosa.power_to_db(mel_spect, ref=np.max)
     librosa.display.specshow(mel_spect)
@@ -29,7 +29,7 @@ def embed(audio_path):
 
 def embed_img(img_path, rm_cache=True):
     transform = transforms.Compose([
-        transforms.Resize([227, 227]),
+        transforms.Resize(input_size),
         # transforms.CenterCrop(300),
         # transforms.RandomAffine(5),
         transforms.ToTensor(),
@@ -63,7 +63,7 @@ def eval(log_dir='./logs', history=''):
         print('No history found, start a new term of training...')
         train()
 
-    model = Net_eval(saved_model_path, 'alexnet')
+    model = Net_eval(saved_model_path, backbone_network)
     input = embed(tag).unsqueeze(0)
 
     if torch.cuda.is_available():
@@ -86,5 +86,5 @@ if __name__ == "__main__":
     parser.add_argument('--log', type=str,
                         default='', help='Select a training history.')
     args = parser.parse_args()
-    # eval(latest_log=args.log)
-    eval()
+    eval(history=args.log)
+    # eval()

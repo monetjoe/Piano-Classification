@@ -13,3 +13,5 @@ test/StarSea.png
 test/Steinway-Theater.png
 test/Steinway.png
 test/*
+.vscode/launch.json
+debug.log

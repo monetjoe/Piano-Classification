@@ -7,7 +7,7 @@ import torch.nn as nn
 from datetime import datetime
 import torch.utils.data
 import torch.optim as optim
-from model import Net
+from model import Net, backbone_network
 from data import prepare_data, create_dir, classes
 from focaloss import FocalLoss
 from plotter import save_acc, save_loss, save_confusion_matrix
@@ -102,7 +102,7 @@ def save_log(start_time, finish_time, cls_report, cm, log_dir):
 
 
 def save_history(model, tra_acc_list, val_acc_list, loss_list, lr_list, cls_report, cm, start_time, finish_time):
-
+    create_dir('./logs')
     log_dir = './logs/history_' + time_stamp()
     create_dir(log_dir)
 
@@ -200,7 +200,7 @@ def train(epoch_num=40, iteration=10, lr=0.001):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='train')
-    parser.add_argument('--model', type=str, default='alexnet',
+    parser.add_argument('--model', type=str, default=backbone_network,
                         help='Select a pre-trained model.')
     args = parser.parse_args()
 
