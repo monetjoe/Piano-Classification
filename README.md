@@ -1,6 +1,6 @@
 # Piano-Classification
 
-Classify piano sound quality
+Classify piano sound quality by fine-tuning pre-trained models.
 
 ## Usage
 
@@ -12,17 +12,16 @@ cd Piano-Classification
 ```
 ### Dataset download
 
-Download at <https://github.com/george-chou/Piano-Classification/releases/download/v0.1/audio.zip>
-Extract it into the project directory
+Download at <https://github.com/george-chou/Piano-Classification/releases/download/v0.1/audio.zip> and extract it into the project directory.
 
 ### Train
-
+Assign a backbone after `--model` to start training:
 ```
 python train.py --model inception_v3
 ```
 
-Support backbones
-| ver                | type       |
+__Supported backbones__
+| Ver                | Type       |
 | :----------------- | :--------- |
 | alexnet            | AlexNet    |
 | vgg11              | VGG        |
@@ -57,19 +56,19 @@ Support backbones
 | mnasnet1_0         | MobileNet  |
 
 ### Plot results
-
+After finishing the training, use below command to plot latest results:
 ```
 python plotter.py
 ```
 
 ### Predict
-
+Use below command to predict an audio target by latest saved model:
 ```
 python evaluate.py --target ./test/KAWAI.wav
 ```
 
 ## Results
-
+A demo result of AlexNet fine-tuning:
 | <img src="./results/loss.png"/> |  <img src="./results/acc.png"/>  |
 | :-----------------------------: | :------------------------------: |
 |           Loss curve            | Training and validation accuracy |
