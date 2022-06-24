@@ -15,3 +15,4 @@ test/Steinway.png
 test/*
 .vscode/launch.json
 debug.log
+results/dur.csv
