@@ -1,10 +1,9 @@
-from math import floor
 import os
+import csv
 import wave
 import torch
 import shutil
 import random
-import zipfile
 import librosa
 import contextlib
 import librosa.display
@@ -13,15 +12,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
 from torchvision.datasets import ImageFolder
-
-audio_dir = './audio'
-img_dir = './image'
-data_dir = './dataset'
-tra_dir = data_dir + '/tra'
-val_dir = data_dir + '/val'
-tes_dir = data_dir + '/tes'
-
-input_size = [227, 227]
+from math import floor
+from utils import *
 
 
 def load_cls():
@@ -34,16 +26,6 @@ def load_cls():
 
 
 classes = load_cls()
-
-
-def unzip_file(zip_src, dst_dir):
-    r = zipfile.is_zipfile(zip_src)
-    if r:
-        fz = zipfile.ZipFile(zip_src, 'r')
-        for file in fz.namelist():
-            fz.extract(file, dst_dir)
-    else:
-        print('This is not zip')
 
 
 def trans(audio_dir, img_dir):
@@ -61,11 +43,21 @@ def trans(audio_dir, img_dir):
     print('Data pre-processed.')
 
 
+def save_audio_dur(audio_name, dur):
+    dur_path = "./results/dur.csv"
+    if not os.path.exists(dur_path):
+        with open(dur_path, "a", newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow([audio_name, dur])
+
+
 def trans_files(cls_dir, img_dir):
     for _, _, filenames in os.walk(cls_dir):
         print('Converting ' + cls_dir.split('/')[-1] + '...')
         for filename in filenames:
-            to_mel(cls_dir + '/' + filename, img_dir, width=0.2)
+            audio_name, dur = to_mel(
+                cls_dir + '/' + filename, img_dir, width=0.2)
+            save_audio_dur(audio_name, dur)
 
 
 def get_duration_wav(audio_path):
@@ -91,18 +83,13 @@ def to_mel(audio_path, img_dir, width=1.0, step=0.2):
         plt.savefig(outpath, bbox_inches='tight', pad_inches=-0.1)
         plt.close()
 
-
-def create_dir(dir):
-    if not os.path.exists(dir):
-        os.mkdir(dir)
+    return audio_name, dur
 
 
-def embedding(file_path):
+def embedding(file_path, input_size=224):
     # dataset
     transform = transforms.Compose([
-        transforms.Resize(input_size),
-        # transforms.CenterCrop(300),
-        # transforms.RandomAffine(5),
+        transforms.Resize([input_size, input_size]),
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
@@ -158,7 +145,7 @@ def copy_img(img_name, tag_dir):
     shutil.copy('./image/' + img_name, outdir)
 
 
-def prepare_data():
+def prepare_data(input_size=224):
 
     if(not os.path.exists(audio_dir)):
         unzip_file('./audio.zip', './')
@@ -167,9 +154,9 @@ def prepare_data():
     load_data(img_dir, data_dir, force_reload=False)
 
     print('Embedding data...')
-    trainLoader = embedding(tra_dir)
-    validLoader = embedding(val_dir)
-    testLoader = embedding(tes_dir)
+    trainLoader = embedding(tra_dir, input_size)
+    validLoader = embedding(val_dir, input_size)
+    testLoader = embedding(tes_dir, input_size)
     print('Data embedded.')
 
     return trainLoader, validLoader, testLoader

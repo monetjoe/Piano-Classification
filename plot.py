@@ -2,7 +2,6 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix
 from scipy import signal as ss
 from data import create_dir, classes
 
@@ -14,7 +13,10 @@ def show_point(max_id, list):
 
 
 def smooth(y):
-    return ss.savgol_filter(y, 95, 3)
+    if 95 <= len(y):
+        return ss.savgol_filter(y, 95, 3)
+
+    return y
 
 
 def plot_acc(tra_acc_list, val_acc_list):
@@ -101,7 +103,10 @@ def get_latest_log(path):
 
     lists = os.listdir(path)
     lists.sort(key=lambda x: os.path.getctime((path + "\\" + x)))
-    return '/' + lists[-1]
+    history = lists[-1]
+    m_ver = history.split('__')[0]
+
+    return '/' + history, m_ver
 
 
 def valid_path(log_path, latest_log):
@@ -123,7 +128,7 @@ def load_history(log_dir='./logs', latest_log=''):
     if valid_path(log_dir, latest_log):
         latest_log = '/' + latest_log
     else:
-        latest_log = get_latest_log(log_dir)
+        latest_log, _ = get_latest_log(log_dir)
 
     latest_acc = log_dir + latest_log + '/acc.csv'
     latest_loss = log_dir + latest_log + '/loss.csv'
@@ -182,7 +187,6 @@ def plot_all(latest_log=''):
     plot_loss(loss_list)
     plt.subplot(224)
     plot_confusion_matrix(cm)
-    # plt.subplots_adjust(wspace=0.5, hspace=0.5)
     plt.tight_layout()
     plt.show()  # Plot latest log
 
@@ -198,5 +202,3 @@ def save_all(latest_log):
 
 if __name__ == "__main__":
     plot_all()
-    # plot_all(latest_log='history_2022-06-16_06-20-26')
-    # save_all('history_2022-06-20_20-55-57')

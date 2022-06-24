@@ -1,60 +1,61 @@
-
 import csv
-from string import digits
-import time
 import torch
-import torch.nn as nn
-from datetime import datetime
+import argparse
 import torch.utils.data
 import torch.optim as optim
-from model import Net, backbone_network
-from data import prepare_data, create_dir, classes
-from focaloss import FocalLoss
-from plotter import save_acc, save_loss, save_confusion_matrix
-from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
+import torch.nn as nn
 import numpy as np
-import argparse
+from datetime import datetime
+from model import Net
+from focalLoss import FocalLoss
+from data import prepare_data, classes
+from utils import time_stamp, create_dir, toCUDA
+from plot import save_acc, save_loss, save_confusion_matrix
+from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
 import warnings
 warnings.filterwarnings("ignore")
 
 
-def eval_model_train(model, trainLoader, device, tra_acc_list):
+def eval_model_train(model, trainLoader, tra_acc_list):
     y_true, y_pred = [], []
     with torch.no_grad():
         for data in trainLoader:
-            images, labels = data[0].to(device), data[1].to(device)
-            outputs = model(images)
-            _, predicted = torch.max(outputs.data, 1)
+            inputs, labels = toCUDA(data[0]), toCUDA(data[1])
+            # outputs = forward(model, m_type, inputs)
+            outputs = model.forward(inputs)
+            predicted = torch.max(outputs.data, 1)[1]
             y_true.extend(labels.tolist())
             y_pred.extend(predicted.tolist())
 
     acc = 100.0 * accuracy_score(y_true, y_pred)
-    print('Accuracy of training    : ' + str(round(acc, 2)) + '%')
+    print('Training acc   : ' + str(round(acc, 2)) + '%')
     tra_acc_list.append(acc)
 
 
-def eval_model_valid(model, validationLoader, device, val_acc_list):
+def eval_model_valid(model, validationLoader, val_acc_list):
     y_true, y_pred = [], []
     with torch.no_grad():
         for data in validationLoader:
-            images, labels = data[0].to(device), data[1].to(device)
-            outputs = model(images)
-            _, predicted = torch.max(outputs.data, 1)
+            inputs, labels = toCUDA(data[0]), toCUDA(data[1])
+            # outputs = forward(model, m_type, inputs)
+            outputs = model.forward(inputs)
+            predicted = torch.max(outputs.data, 1)[1]
             y_true.extend(labels.tolist())
             y_pred.extend(predicted.tolist())
 
     acc = 100.0 * accuracy_score(y_true, y_pred)
-    print('Accuracy of validation  : ' + str(round(acc, 2)) + '%')
+    print('Validation acc : ' + str(round(acc, 2)) + '%')
     val_acc_list.append(acc)
 
 
-def eval_model_test(model, testLoader, device):
+def eval_model_test(model, testLoader):
     y_true, y_pred = [], []
     with torch.no_grad():
         for data in testLoader:
-            images, labels = data[0].to(device), data[1].to(device)
-            outputs = model(images)
-            _, predicted = torch.max(outputs.data, 1)
+            inputs, labels = toCUDA(data[0]), toCUDA(data[1])
+            # outputs = forward(model, m_type, inputs)
+            outputs = model.forward(inputs)
+            predicted = torch.max(outputs.data, 1)[1]
             y_true.extend(labels.tolist())
             y_pred.extend(predicted.tolist())
 
@@ -63,13 +64,6 @@ def eval_model_test(model, testLoader, device):
     cm = confusion_matrix(y_true, y_pred, normalize='all')
 
     return report, cm
-
-
-def time_stamp(timestamp=None):
-    if timestamp != None:
-        return timestamp.strftime("%Y-%m-%d %H:%M:%S")
-
-    return time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime(time.time()))
 
 
 def save_log(start_time, finish_time, cls_report, cm, log_dir):
@@ -103,7 +97,7 @@ def save_log(start_time, finish_time, cls_report, cm, log_dir):
 
 def save_history(model, tra_acc_list, val_acc_list, loss_list, lr_list, cls_report, cm, start_time, finish_time):
     create_dir('./logs')
-    log_dir = './logs/history_' + time_stamp()
+    log_dir = './logs/' + args.model + '__' + time_stamp()
     create_dir(log_dir)
 
     acc_len = len(tra_acc_list)
@@ -128,39 +122,37 @@ def save_history(model, tra_acc_list, val_acc_list, loss_list, lr_list, cls_repo
     save_log(start_time, finish_time, cls_report, cm, log_dir)
 
 
-def train(epoch_num=40, iteration=10, lr=0.001):
+def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
 
+    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     tra_acc_list, val_acc_list, loss_list, lr_list = [], [], [], []
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    # load data
-    trainLoader, validLoader, testLoader = prepare_data()
 
     # init model
-    model = Net(backbone=args.model)
-    # print(model)
+    model = Net(m_ver=backbone_ver)
+
+    # load data
+    trainLoader, validLoader, testLoader = prepare_data(model.input_size)
 
     #optimizer and loss
     criterion = nn.CrossEntropyLoss()
     # criterion = FocalLoss(class_num=len(classes))
-    optimizer = optim.SGD(model.classifier.parameters(), lr, momentum=0.9)
+    optimizer = optim.SGD(model.parameters(), lr, momentum=0.9)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode='min', factor=0.1, patience=5, verbose=True,
         threshold=lr, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-08)
 
-    # device
+    # gpu
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
-    model = model.to(device)
-    criterion = criterion.to(device)
-    for state in optimizer.state.values():
-        for k, v in state.items():
-            if isinstance(v, torch.Tensor):
-                state[k] = v.to(device)
+        criterion = criterion.cuda()
+        for state in optimizer.state.values():
+            for k, v in state.items():
+                if isinstance(v, torch.Tensor):
+                    state[k] = v.cuda()
 
     # train process
     start_time = datetime.now()
-    print('Start training at ' + time_stamp(start_time))
+    print('Start training [' + args.model + '] at ' + time_stamp(start_time))
     for epoch in range(epoch_num):  # loop over the dataset multiple times
         epoch_str = f' Epoch {epoch + 1}/{epoch_num} '
         lr_str = optimizer.param_groups[0]["lr"]
@@ -170,38 +162,38 @@ def train(epoch_num=40, iteration=10, lr=0.001):
         running_loss = 0.0
         for i, data in enumerate(trainLoader, 0):
             # get the inputs
-            inputs, labels = data[0].to(device), data[1].to(device)
+            inputs, labels = toCUDA(data[0]), toCUDA(data[1])
             # zero the parameter gradients
             optimizer.zero_grad()
 
             # forward + backward + optimize
-            outputs = model(inputs)
+            outputs = model.forward(inputs)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
 
             # print statistics
             running_loss += loss.item()
-            if i % iteration == iteration - 1:    # print every 2000 mini-batches
+            # print every 2000 mini-batches
+            if i % iteration == iteration - 1:
                 print('[%d, %5d] loss: %.3f' %
                       (epoch + 1, i + 1, running_loss / iteration))
                 loss_list.append(running_loss / iteration)
             running_loss = 0.0
 
-        eval_model_train(model, trainLoader, device, tra_acc_list)
-        eval_model_valid(model, validLoader, device, val_acc_list)
+        eval_model_train(model, trainLoader, tra_acc_list)
+        eval_model_valid(model, validLoader, val_acc_list)
         scheduler.step(loss.item())
 
     finish_time = datetime.now()
-    cls_report, cm = eval_model_test(model, testLoader, device)
+    cls_report, cm = eval_model_test(model, testLoader)
     save_history(model, tra_acc_list, val_acc_list, loss_list,
                  lr_list, cls_report, cm, start_time, finish_time)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='train')
-    parser.add_argument('--model', type=str, default=backbone_network,
-                        help='Select a pre-trained model.')
+    parser.add_argument('--model', type=str, default='inception_v3')
     args = parser.parse_args()
 
-    train(epoch_num=40)
+    train(backbone_ver=args.model, epoch_num=1)
