@@ -20,8 +20,7 @@ def eval_model_train(model, trainLoader, tra_acc_list):
     y_true, y_pred = [], []
     with torch.no_grad():
         for data in trainLoader:
-            inputs, labels = toCUDA(data[0]), toCUDA(data[1])
-            # outputs = forward(model, m_type, inputs)
+            inputs, labels = data[0], toCUDA(data[1])
             outputs = model.forward(inputs)
             predicted = torch.max(outputs.data, 1)[1]
             y_true.extend(labels.tolist())
@@ -36,8 +35,7 @@ def eval_model_valid(model, validationLoader, val_acc_list):
     y_true, y_pred = [], []
     with torch.no_grad():
         for data in validationLoader:
-            inputs, labels = toCUDA(data[0]), toCUDA(data[1])
-            # outputs = forward(model, m_type, inputs)
+            inputs, labels = data[0], toCUDA(data[1])
             outputs = model.forward(inputs)
             predicted = torch.max(outputs.data, 1)[1]
             y_true.extend(labels.tolist())
@@ -52,8 +50,7 @@ def eval_model_test(model, testLoader):
     y_true, y_pred = [], []
     with torch.no_grad():
         for data in testLoader:
-            inputs, labels = toCUDA(data[0]), toCUDA(data[1])
-            # outputs = forward(model, m_type, inputs)
+            inputs, labels = data[0], toCUDA(data[1])
             outputs = model.forward(inputs)
             predicted = torch.max(outputs.data, 1)[1]
             y_true.extend(labels.tolist())
@@ -162,7 +159,7 @@ def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
         running_loss = 0.0
         for i, data in enumerate(trainLoader, 0):
             # get the inputs
-            inputs, labels = toCUDA(data[0]), toCUDA(data[1])
+            inputs, labels = data[0], toCUDA(data[1])
             # zero the parameter gradients
             optimizer.zero_grad()
 
