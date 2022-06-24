@@ -1,6 +1,6 @@
 # Piano-Classification
 
-Classify piano sound quality by fine-tuning pre-trained models.
+Classify piano sound quality by fine-tuned pre-trained models.
 
 ## Usage
 
@@ -58,17 +58,17 @@ __Supported backbones__
 ### Plot results
 After finishing the training, use below command to plot latest results:
 ```
-python plotter.py
+python plot.py
 ```
 
 ### Predict
 Use below command to predict an audio target by latest saved model:
 ```
-python evaluate.py --target ./test/KAWAI.wav
+python eval.py --target ./test/KAWAI.wav
 ```
 
 ## Results
 A demo result of AlexNet fine-tuning:
-| <img src="./results/loss.png"/> |  <img src="./results/acc.png"/>  |
-| :-----------------------------: | :------------------------------: |
-|           Loss curve            | Training and validation accuracy |
+| <img src="./results/loss.png"/> |  <img src="./results/acc.png"/>  | <img src="./results/mat.png"/> |
+| :-----------------------------: | :------------------------------: | :----------------------------: |
+|           Loss curve            | Training and validation accuracy |        Confusion matrix        |
