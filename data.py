@@ -12,7 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
 from torchvision.datasets import ImageFolder
-from math import floor
+from math import ceil, floor
 from utils import *
 
 
@@ -20,7 +20,8 @@ def load_cls():
     cls = []
     for _, dirnames, _ in os.walk(audio_dir):
         for dirname in dirnames:
-            cls.append(dirname.split('_')[-1])
+            if len(os.listdir(audio_dir + '/' + dirname)) > 0:
+                cls.append(dirname)
 
     return cls
 
@@ -28,11 +29,11 @@ def load_cls():
 classes = load_cls()
 
 
-def trans(audio_dir, img_dir):
+def trans(audio_dir, img_dir, force_reload=True):
     print('Pre-processing data...')
     create_dir(img_dir)
 
-    if len(os.listdir(img_dir)) > 0:
+    if len(os.listdir(img_dir)) > 0 and (not force_reload):
         print('Data already pre-processed.')
         return
 
@@ -71,10 +72,12 @@ def get_duration_wav(audio_path):
 def to_mel(audio_path, img_dir, width=1.0, step=0.2):
     dur = get_duration_wav(audio_path)
     audio_name = audio_path.split('/')[-1][:-4]
+    cls_name = audio_path.split('/')[-2]
     print('Duration of audio ' + audio_name + ': ' + str(dur) + 's')
     for i in np.arange(0.0, dur - width + step, step):
         index = round(i, 1)
-        outpath = img_dir + '/' + audio_name + '[' + str(index) + '].png'
+        outpath = img_dir + '/' + cls_name + '__' + \
+            audio_name + '[' + str(index) + '].png'
         y, sr = librosa.load(audio_path, offset=index, duration=width)
         mel_spect = librosa.feature.melspectrogram(y=y, sr=sr, n_fft=1024)
         mel_spect = librosa.power_to_db(mel_spect, ref=np.max)
@@ -86,7 +89,7 @@ def to_mel(audio_path, img_dir, width=1.0, step=0.2):
     return audio_name, dur
 
 
-def embedding(file_path, input_size=224):
+def embedding(file_path, batch_size=4, input_size=224):
     # dataset
     transform = transforms.Compose([
         transforms.Resize([input_size, input_size]),
@@ -94,8 +97,12 @@ def embedding(file_path, input_size=224):
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
 
+    if not len(os.listdir(file_path)) == len(classes):
+        print('Corrupt ' + file_path.split('/')[-1] + 'set.')
+        exit()
+
     inputSet = ImageFolder(file_path,  transform=transform)
-    return torch.utils.data.DataLoader(inputSet, batch_size=4, shuffle=True, num_workers=2)
+    return torch.utils.data.DataLoader(inputSet, batch_size, shuffle=True, num_workers=2)
 
 
 def load_data(img_dir, data_dir, force_reload=True):
@@ -116,8 +123,12 @@ def load_data(img_dir, data_dir, force_reload=True):
     for _, _, filenames in os.walk(img_dir):
 
         length = len(filenames)
-        p10 = floor(length / 10)
-        p20 = 2 * p10
+        if length < (10 * len(classes)):
+            print('Insufficient data.')
+            exit()
+
+        p10 = ceil(length / 10)  # 10% of all data
+        p20 = 2 * p10            # 20% of all data
 
         val_test = random.sample(filenames, p20)
         trainset = list(set(filenames) - set(val_test))
@@ -138,25 +149,26 @@ def load_data(img_dir, data_dir, force_reload=True):
 
 
 def copy_img(img_name, tag_dir):
-    cls_id = int(img_name[0])
-    cls = str(cls_id) + '_' + classes[cls_id - 1]
+    # cls_id = int(img_name[0])
+    # cls = str(cls_id) + '_' + classes[cls_id - 1]
+    cls = img_name.split('__')[0]
     outdir = tag_dir + '/' + cls
     create_dir(outdir)
     shutil.copy('./image/' + img_name, outdir)
 
 
-def prepare_data(input_size=224):
+def prepare_data(batch_size=4, input_size=224):
 
     if(not os.path.exists(audio_dir)):
         unzip_file('./audio.zip', './')
 
-    trans(audio_dir, img_dir)
+    trans(audio_dir, img_dir, force_reload=False)
     load_data(img_dir, data_dir, force_reload=False)
 
     print('Embedding data...')
-    trainLoader = embedding(tra_dir, input_size)
-    validLoader = embedding(val_dir, input_size)
-    testLoader = embedding(tes_dir, input_size)
+    trainLoader = embedding(tra_dir, batch_size, input_size)
+    validLoader = embedding(val_dir, batch_size, input_size)
+    testLoader = embedding(tes_dir, batch_size, input_size)
     print('Data embedded.')
 
     return trainLoader, validLoader, testLoader
