@@ -12,7 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
 from torchvision.datasets import ImageFolder
-from math import ceil, floor
+from math import ceil
 from utils import *
 
 
