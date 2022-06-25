@@ -1,10 +1,10 @@
 import csv
 import torch
 import argparse
+import numpy as np
+import torch.nn as nn
 import torch.utils.data
 import torch.optim as optim
-import torch.nn as nn
-import numpy as np
 from datetime import datetime
 from model import Net
 from focalLoss import FocalLoss
@@ -128,7 +128,8 @@ def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
     model = Net(m_ver=backbone_ver)
 
     # load data
-    trainLoader, validLoader, testLoader = prepare_data(model.input_size)
+    trainLoader, validLoader, testLoader = prepare_data(
+        batch_size=4, input_size=model.input_size)
 
     #optimizer and loss
     criterion = nn.CrossEntropyLoss()
@@ -190,7 +191,7 @@ def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='train')
-    parser.add_argument('--model', type=str, default='inception_v3')
+    parser.add_argument('--model', type=str, default='mobilenet_v2')
     args = parser.parse_args()
 
-    train(backbone_ver=args.model, epoch_num=1)
+    train(backbone_ver=args.model, epoch_num=40)
