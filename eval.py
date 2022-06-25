@@ -28,14 +28,14 @@ def embed(audio_path, input_size):
     return embed_img(img_path, input_size)
 
 
-def split_embed(audio_path, input_size, width=0.2, step=0.2):
+def split_embed(audio_path, input_size, width=1.0, step=0.2):
     cache_dir = audio_path[:-4] + '_' + time_stamp()
     dur = get_duration_wav(audio_path)
-    # start = (dur - width) * 0.5
-    # end = (dur + width) * 0.5
+    start = 0  # (dur - width) * 0.5
+    end = dur - width + step  # (dur + width) * 0.5
     inputs = []
     create_dir(cache_dir)
-    for i in np.arange(0, dur - width + step, step):
+    for i in np.arange(start, end, step):
         index = round(i, 1)
         outpath = cache_dir + '/' + str(index) + '.png'
         y, sr = librosa.load(audio_path, offset=index, duration=width)
@@ -66,14 +66,7 @@ def embed_img(img_path, input_size=224, rm_cache=True):
     return transform(img).unsqueeze(0)
 
 
-def eval(log_dir='./logs', history='', split_mode=False):
-
-    tag = args.target
-
-    if not os.path.exists(tag):
-        print('Target not found.')
-        exit()
-
+def get_saved_model(log_dir, history):
     if valid_path(log_dir, history):
         m_ver = history.split('__')[0]
         history = '/' + history
@@ -86,11 +79,22 @@ def eval(log_dir='./logs', history='', split_mode=False):
         print('No history found, start a new term of training...')
         train()
 
+    return saved_model_path, m_ver
+
+
+def eval(log_dir='./logs', history='', split_mode=False):
+    tag = args.target
+
+    if not os.path.exists(tag):
+        print('Target not found.')
+        exit()
+
+    saved_model_path, m_ver = get_saved_model(log_dir, history)
     model = Net(m_ver, saved_model_path)
     print('[' + m_ver + '] prediction result:')
 
     if split_mode:
-        inputs = split_embed(tag, model.input_size)
+        inputs = split_embed(tag, model.input_size, width=0.2)
         outputs = []
         for input in inputs:
             output = model.forward(input)
