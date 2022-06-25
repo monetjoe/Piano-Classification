@@ -12,7 +12,24 @@ cd Piano-Classification
 ```
 ### Dataset download
 
-Download at <https://github.com/george-chou/Piano-Classification/releases/download/v0.1/audio.zip> and extract it into the project directory.
+Download [dataset](https://github.com/george-chou/Piano-Classification/releases/download/v0.1/audio.zip) and extract it into the project directory as following directory structure:
+
+- Piano-Classification
+    - audio
+        - 1_ZhuJiang
+          - 1009.wav
+          - 1010.wav
+          - ...     
+        - 2_Old-YingChang
+          - 2009.wav
+          - 2010.wav
+          - ...       
+        - 3_Steinway-Theater
+        - 4_StarSea
+        - 5_KAWAI
+        - 6_Steinway
+        - 7_KAWAI-Tri
+        - 8_Yamaha
 
 ### Train
 Assign a backbone after `--model` to start training:
@@ -71,6 +88,6 @@ python eval.py --target ./test/KAWAI.wav
 A demo result of AlexNet fine-tuning:
 |              Index               |              Plot               |
 | :------------------------------: | :-----------------------------: |
-| Training and validation accuracy | <img src="./results/loss.png"/> |
-|            Loss curve            | <img src="./results/acc.png"/>  |
+|            Loss curve            | <img src="./results/loss.png"/> |
+| Training and validation accuracy | <img src="./results/acc.png"/>  |
 |         Confusion matrix         | <img src="./results/mat.png"/>  |
