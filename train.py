@@ -132,8 +132,8 @@ def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
         batch_size=4, input_size=model.input_size)
 
     #optimizer and loss
-    criterion = nn.CrossEntropyLoss()
-    # criterion = FocalLoss(class_num=len(classes))
+    # criterion = nn.CrossEntropyLoss()
+    criterion = FocalLoss()
     optimizer = optim.SGD(model.parameters(), lr, momentum=0.9)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode='min', factor=0.1, patience=5, verbose=True,
@@ -191,7 +191,7 @@ def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='train')
-    parser.add_argument('--model', type=str, default='densenet201')
+    parser.add_argument('--model', type=str, default='alexnet')
     args = parser.parse_args()
 
     train(backbone_ver=args.model, epoch_num=40)
