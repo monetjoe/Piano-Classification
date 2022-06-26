@@ -1,7 +1,6 @@
 import os
 import csv
 import wave
-import torch
 import shutil
 import random
 import librosa
@@ -9,6 +8,7 @@ import contextlib
 import librosa.display
 import torch.utils.data
 import numpy as np
+import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
 from torchvision.datasets import ImageFolder
@@ -27,6 +27,28 @@ def load_cls():
 
 
 classes = load_cls()
+
+
+def calc_alpha(use_softmax=False):
+    sample_sizes = []
+    for _, dirnames, _ in os.walk(tra_dir):
+        for dirname in dirnames:
+            data_num = len(os.listdir(tra_dir + '/' + dirname))
+            if data_num > 0:
+                sample_sizes.append([data_num])
+
+    if len(sample_sizes) <= 1:  # at least 2 classes are required
+        print('Corrupt dataset.')
+        exit()
+
+    data_sizes = 1.0 / torch.tensor(sample_sizes)
+    if use_softmax:
+        data_sizes = F.softmax(data_sizes)
+
+    else:
+        data_sizes = data_sizes / data_sizes.sum()
+
+    return data_sizes
 
 
 def trans(audio_dir, img_dir, force_reload=True):
@@ -175,5 +197,5 @@ def prepare_data(batch_size=4, input_size=224):
 
 
 if __name__ == "__main__":
-    trans(audio_dir, img_dir)
+    trans(audio_dir, img_dir, force_reload=False)
     load_data(img_dir, data_dir)

@@ -2,18 +2,21 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
+from data import calc_alpha
 
 
 class FocalLoss(nn.Module):
-    def __init__(self, class_num, alpha=None, gamma=2, size_average=True):
+    def __init__(self, gamma=2, alpha=calc_alpha(), size_average=True):
         super(FocalLoss, self).__init__()
-        if alpha is None:
-            self.alpha = Variable(torch.ones(class_num, 1) * 0.25)
+        class_num = len(alpha)
+        if alpha is None:  # Now is impossible
+            self.alpha = Variable(torch.ones(class_num, 1) / class_num)
         else:
             if isinstance(alpha, Variable):
                 self.alpha = alpha
             else:
                 self.alpha = Variable(alpha)
+
         self.gamma = gamma
         self.class_num = class_num
         self.size_average = size_average
@@ -31,15 +34,14 @@ class FocalLoss(nn.Module):
 
         if inputs.is_cuda and not self.alpha.is_cuda:
             self.alpha = self.alpha.cuda()
+
         alpha = self.alpha[ids.data.view(-1)]
-
-        probs = (P*class_mask).sum(1).view(-1, 1)
-
+        probs = (P * class_mask).sum(1).view(-1, 1)
         log_p = probs.log()
-        #print('probs size= {}'.format(probs.size()))
+        # print('probs size= {}'.format(probs.size()))
         # print(probs)
 
-        batch_loss = -alpha*(torch.pow((1-probs), self.gamma))*log_p
+        batch_loss = -alpha * (torch.pow((1 - probs), self.gamma)) * log_p
         # print('-----bacth_loss------')
         # print(batch_loss)
 
@@ -47,4 +49,5 @@ class FocalLoss(nn.Module):
             loss = batch_loss.mean()
         else:
             loss = batch_loss.sum()
+
         return loss
