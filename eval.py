@@ -82,20 +82,20 @@ def get_saved_model(log_dir, history):
     return saved_model_path, m_ver
 
 
-def eval(tag='', log_dir='./logs', history='', split_mode=False):
+def eval(tag='', log_dir='./logs', history='', split_mode=False, cls_num=len(classes)):
 
     if not os.path.exists(tag):
         print('Target not found.')
         exit()
 
     saved_model_path, m_ver = get_saved_model(log_dir, history)
-    model = Net(m_ver, saved_model_path)
+    model = Net(m_ver, saved_model_path, cls_num=cls_num)
     print('[' + m_ver + '] prediction result:')
 
     if split_mode:
         inputs = split_embed(tag, model.input_size, width=0.2)
         outputs = []
-        preds = torch.zeros(len(classes))
+        preds = torch.zeros(cls_num)
 
         if torch.cuda.is_available():
             preds = preds.cuda()
@@ -116,7 +116,7 @@ def eval(tag='', log_dir='./logs', history='', split_mode=False):
         pred_id = torch.max(output.data, 1)[1]
         prediction = classes[pred_id]
         print(prediction)
-        return output
+        return output[0]
 
 
 if __name__ == "__main__":
