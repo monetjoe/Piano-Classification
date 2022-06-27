@@ -4,6 +4,7 @@ import pandas as pd
 import torchvision.models as models
 from classifier import Classifier
 from utils import url_download, create_dir, backbone_list_path
+from data import classes
 
 
 def backbone_exist(backbone_ver):
@@ -41,12 +42,12 @@ def download_model(pre_model_url):
     return pre_model_path
 
 
-def set_classifier(model, m_type):
+def set_classifier(model, m_type, cls_num=len(classes)):
     if hasattr(model, 'classifier'):
-        model.classifier = Classifier(backbone_type=m_type)
+        model.classifier = Classifier(backbone_type=m_type, cls_num=cls_num)
 
     elif hasattr(model, 'fc'):
-        model.fc = Classifier(backbone_type=m_type)
+        model.fc = Classifier(backbone_type=m_type, cls_num=cls_num)
 
 
 class Net():
@@ -57,7 +58,7 @@ class Net():
     training = True
     deep_finetune = False
 
-    def __init__(self, m_ver='alexnet', saved_model_path='', deep_finetune=False):
+    def __init__(self, m_ver='alexnet', saved_model_path='', deep_finetune=False, cls_num=len(classes)):
         self.training = (saved_model_path == '')
         self.deep_finetune = deep_finetune
         self.m_url, self.m_type, self.input_size = model_info(m_ver)
@@ -78,7 +79,7 @@ class Net():
             self.model.train()
 
         else:
-            set_classifier(self.model, self.m_type)
+            set_classifier(self.model, self.m_type, cls_num)
             checkpoint = torch.load(saved_model_path, map_location='cpu')
             if torch.cuda.is_available():
                 checkpoint = torch.load(saved_model_path)
