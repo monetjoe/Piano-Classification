@@ -125,7 +125,7 @@ def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
     tra_acc_list, val_acc_list, loss_list, lr_list = [], [], [], []
 
     # init model
-    model = Net(m_ver=backbone_ver, deep_finetune=False)
+    model = Net(m_ver=backbone_ver, deep_finetune=args.deepfinetune)
 
     # load data
     trainLoader, validLoader, testLoader = prepare_data(
@@ -192,6 +192,7 @@ def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='train')
     parser.add_argument('--model', type=str, default='alexnet')
+    parser.add_argument('--deepfinetune', type=bool, default=False)
     args = parser.parse_args()
 
     train(backbone_ver=args.model, epoch_num=40)

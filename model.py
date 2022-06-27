@@ -65,7 +65,10 @@ class Net():
 
         if self.training:
             pre_model_path = download_model(self.m_url)
-            checkpoint = torch.load(pre_model_path)
+            checkpoint = torch.load(pre_model_path, map_location='cpu')
+            if torch.cuda.is_available():
+                checkpoint = torch.load(pre_model_path)
+
             self.model.load_state_dict(checkpoint, False)
 
             for parma in self.model.parameters():
@@ -76,7 +79,10 @@ class Net():
 
         else:
             set_classifier(self.model, self.m_type)
-            checkpoint = torch.load(saved_model_path)
+            checkpoint = torch.load(saved_model_path, map_location='cpu')
+            if torch.cuda.is_available():
+                checkpoint = torch.load(saved_model_path)
+
             self.model.load_state_dict(checkpoint, False)
             self.model.eval()
 

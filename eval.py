@@ -82,8 +82,7 @@ def get_saved_model(log_dir, history):
     return saved_model_path, m_ver
 
 
-def eval(log_dir='./logs', history='', split_mode=False):
-    tag = args.target
+def eval(tag='', log_dir='./logs', history='', split_mode=False):
 
     if not os.path.exists(tag):
         print('Target not found.')
@@ -96,21 +95,28 @@ def eval(log_dir='./logs', history='', split_mode=False):
     if split_mode:
         inputs = split_embed(tag, model.input_size, width=0.2)
         outputs = []
+        preds = torch.zeros(len(classes))
+
+        if torch.cuda.is_available():
+            preds = preds.cuda()
+
         for input in inputs:
             output = model.forward(input)
+            preds += (output.data)[0]
             pred_id = torch.max(output.data, 1)[1]
             prediction = classes[pred_id]
             outputs.append(prediction)
 
         print(max(outputs, key=outputs.count))
+        return preds / len(inputs)
 
     else:
         input = embed(tag, model.input_size)
         output = model.forward(input)
         pred_id = torch.max(output.data, 1)[1]
         prediction = classes[pred_id]
-        # print(output)
         print(prediction)
+        return output
 
 
 if __name__ == "__main__":
@@ -119,4 +125,4 @@ if __name__ == "__main__":
     parser.add_argument('--log', type=str, default='')
     args = parser.parse_args()
 
-    eval(history=args.log, split_mode=True)
+    eval(tag=args.target, history=args.log, split_mode=True)
