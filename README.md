@@ -86,8 +86,8 @@ python eval.py --target ./test/KAWAI.wav
 
 ## Results
 A demo result of AlexNet fine-tuning:
-|              Index               |              Plot               |
-| :------------------------------: | :-----------------------------: |
-|            Loss curve            | <img src="./results/loss.png"/> |
-| Training and validation accuracy | <img src="./results/acc.png"/>  |
-|         Confusion matrix         | <img src="./results/mat.png"/>  |
+|              Index               |                                  Plot                                  |
+| :------------------------------: | :--------------------------------------------------------------------: |
+|            Loss curve            | <img src="https://picrepo.netlify.app/Piano-Classification/loss.png"/> |
+| Training and validation accuracy | <img src="https://picrepo.netlify.app/Piano-Classification/acc.png"/>  |
+|         Confusion matrix         | <img src="https://picrepo.netlify.app/Piano-Classification/mat.png"/>  |
