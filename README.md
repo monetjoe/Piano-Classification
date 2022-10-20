@@ -12,7 +12,7 @@ cd Piano-Classification
 ```
 ### Dataset download
 
-Download [dataset](https://github.com/george-chou/Piano-Classification/releases/download/v0.1/audio.zip) and extract it into the project path as following directory structure:
+Download [dataset](https://github.com/george-chou/Piano-Classification/releases/download/dataset/audio.zip) and extract it into the project path as following directory structure:
 
 - Piano-Classification
     - audio
