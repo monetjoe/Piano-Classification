@@ -32,7 +32,7 @@ Download [dataset](https://github.com/george-chou/Piano-Classification/releases/
         - 8_Yamaha
 
 ### Train
-Assign a backbone after `--model` to start training:
+Assign a backbone(for example inception_v3) after `--model` to start training:
 ```
 python train.py --model inception_v3
 ```
