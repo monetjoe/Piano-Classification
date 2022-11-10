@@ -25,10 +25,11 @@ def model_info(backbone_ver):
     data = pd.read_csv(backbone_list_path, index_col='ver')
     backbone = data.loc[backbone_ver]
     input_size = int(backbone['input_size'])
+    output_size = int(backbone['output_size'])
     m_type = str(backbone['type'])
     m_url = str(backbone['url'])
 
-    return m_url, m_type, input_size
+    return m_url, m_type, input_size, output_size
 
 
 def download_model(pre_model_url):
@@ -42,12 +43,14 @@ def download_model(pre_model_url):
     return pre_model_path
 
 
-def set_classifier(model, m_type, cls_num=len(classes)):
+def set_classifier(model, output_size, m_type, cls_num=len(classes)):
     if hasattr(model, 'classifier'):
-        model.classifier = Classifier(backbone_type=m_type, cls_num=cls_num)
+        model.classifier = Classifier(
+            output_size, backbone_type=m_type, cls_num=cls_num)
 
     elif hasattr(model, 'fc'):
-        model.fc = Classifier(backbone_type=m_type, cls_num=cls_num)
+        model.fc = Classifier(
+            output_size, backbone_type=m_type, cls_num=cls_num)
 
 
 class Net():
@@ -55,13 +58,15 @@ class Net():
     model = None
     m_url, m_type = '', ''
     input_size = 224
+    output_size = 0
     training = True
     deep_finetune = False
 
     def __init__(self, m_ver='alexnet', saved_model_path='', deep_finetune=False, cls_num=len(classes)):
         self.training = (saved_model_path == '')
         self.deep_finetune = deep_finetune
-        self.m_url, self.m_type, self.input_size = model_info(m_ver)
+        self.m_url, self.m_type, self.input_size, self.output_size = model_info(
+            m_ver)
         self.model = eval('models.%s()' % m_ver)
 
         if self.training:
@@ -75,11 +80,11 @@ class Net():
             for parma in self.model.parameters():
                 parma.requires_grad = self.deep_finetune
 
-            set_classifier(self.model, self.m_type)
+            set_classifier(self.model, self.output_size, self.m_type)
             self.model.train()
 
         else:
-            set_classifier(self.model, self.m_type, cls_num)
+            set_classifier(self.model, self.output_size, self.m_type, cls_num)
             checkpoint = torch.load(saved_model_path, map_location='cpu')
             if torch.cuda.is_available():
                 checkpoint = torch.load(saved_model_path)
@@ -92,7 +97,7 @@ class Net():
             x = x.cuda()
             self.model = self.model.cuda()
 
-        if (self.m_type == 'googlenet' or self.m_type == 'inception') and self.training:
+        if self.m_type == 'googlenet' and self.training:
             return self.model(x)[0]
 
         else:

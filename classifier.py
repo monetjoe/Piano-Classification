@@ -3,12 +3,12 @@ import torch.nn as nn
 from data import classes
 
 
-def Classifier(backbone_type='alexnet', cls_num=len(classes)):
+def Classifier(output_size, backbone_type='alexnet', cls_num=len(classes)):
 
     if backbone_type == 'alexnet':
         return torch.nn.Sequential(
             nn.Dropout(),
-            nn.Linear(256 * 6 * 6, 4096),
+            nn.Linear(output_size, 4096),
             nn.ReLU(inplace=True),
             nn.Dropout(),
             nn.Linear(4096, 4096),
@@ -22,7 +22,7 @@ def Classifier(backbone_type='alexnet', cls_num=len(classes)):
     if backbone_type == 'vgg':
         return torch.nn.Sequential(
             nn.Dropout(),
-            nn.Linear(512 * 7 * 7, 4096),
+            nn.Linear(output_size, 4096),
             nn.ReLU(inplace=True),
             nn.Dropout(),
             nn.Linear(4096, 4096),
@@ -36,7 +36,7 @@ def Classifier(backbone_type='alexnet', cls_num=len(classes)):
     if backbone_type == 'squeezenet':
         return torch.nn.Sequential(
             nn.Dropout(p=0.5, inplace=False),
-            nn.Conv2d(512, 1000, kernel_size=(1, 1), stride=(1, 1)),
+            nn.Conv2d(output_size, 1000, kernel_size=(1, 1), stride=(1, 1)),
             nn.ReLU(inplace=True),
             nn.AdaptiveAvgPool2d(output_size=(1, 1)),
             nn.Flatten(),
@@ -51,7 +51,7 @@ def Classifier(backbone_type='alexnet', cls_num=len(classes)):
     if backbone_type == 'mobilenet':
         return torch.nn.Sequential(
             nn.Dropout(p=0.2, inplace=True),
-            nn.Linear(in_features=1280, out_features=1000, bias=True),
+            nn.Linear(in_features=output_size, out_features=1000, bias=True),
             nn.ReLU(inplace=True),
             nn.Dropout(),
             nn.Linear(1000, 1000),
@@ -64,7 +64,7 @@ def Classifier(backbone_type='alexnet', cls_num=len(classes)):
 
     if backbone_type == 'resnet':
         return torch.nn.Sequential(
-            nn.Linear(in_features=2048, out_features=1000, bias=True),
+            nn.Linear(in_features=output_size, out_features=1000, bias=True),
             nn.ReLU(inplace=True),
             nn.Dropout(),
             nn.Linear(1000, 1000),
@@ -77,7 +77,7 @@ def Classifier(backbone_type='alexnet', cls_num=len(classes)):
 
     if backbone_type == 'shufflenet':
         return torch.nn.Sequential(
-            nn.Linear(in_features=1024, out_features=1000, bias=True),
+            nn.Linear(in_features=output_size, out_features=1000, bias=True),
             nn.ReLU(inplace=True),
             nn.Dropout(),
             nn.Linear(1000, 1000),
@@ -91,7 +91,7 @@ def Classifier(backbone_type='alexnet', cls_num=len(classes)):
     if backbone_type == 'inception':
         return torch.nn.Sequential(
             nn.Dropout(),
-            nn.Linear(2048, 1000),
+            nn.Linear(output_size, 1000),
             nn.ReLU(inplace=True),
             nn.Dropout(),
             nn.Linear(1000, 1000),
@@ -105,7 +105,7 @@ def Classifier(backbone_type='alexnet', cls_num=len(classes)):
     if backbone_type == 'googlenet':
         return torch.nn.Sequential(
             nn.Dropout(),
-            nn.Linear(1024, 1000),
+            nn.Linear(output_size, 1000),
             nn.ReLU(inplace=True),
             nn.Dropout(),
             nn.Linear(1000, 1000),
@@ -118,7 +118,7 @@ def Classifier(backbone_type='alexnet', cls_num=len(classes)):
 
     if backbone_type == 'densenet':
         return torch.nn.Sequential(
-            nn.Linear(in_features=1920, out_features=cls_num, bias=True)
+            nn.Linear(in_features=output_size, out_features=cls_num, bias=True)
         )
 
     print('Unsupported backbone.')
