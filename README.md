@@ -67,8 +67,8 @@ __Supported backbones__
 | densenet169        | DenseNet   |
 | densenet201        | DenseNet   |
 | densenet161        | DenseNet   |
-| inception_v3       | Inception  |
 | googlenet          | GoogleNet  |
+| inception_v3       | GoogleNet  |
 | shufflenet_v2_x0_5 | ShuffleNet |
 | shufflenet_v2_x1_0 | ShuffleNet |
 | mobilenet_v2       | MobileNet  |
