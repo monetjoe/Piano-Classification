@@ -1,5 +1,8 @@
 # Piano-Classification
 
+[![Python application](https://github.com/george-chou/Piano-Classification/actions/workflows/python-app.yml/badge.svg?branch=main)](https://github.com/george-chou/Piano-Classification/actions/workflows/python-app.yml)
+[![license](https://img.shields.io/github/license/george-chou/Piano-Classification.svg)](https://github.com/george-chou/Piano-Classification/blob/master/LICENSE)
+
 Classify piano sound quality by fine-tuned pre-trained models.
 
 ## Usage
