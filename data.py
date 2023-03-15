@@ -80,6 +80,8 @@ def trans_files(cls_dir, img_dir):
         for filename in filenames:
             audio_name, dur = to_mel(
                 cls_dir + '/' + filename, img_dir, width=0.2)
+            if not os.path.exists('./results'):
+                os.mkdir('./results')
             save_audio_dur(audio_name, dur)
 
 
@@ -181,7 +183,7 @@ def copy_img(img_name, tag_dir):
 
 def prepare_data(batch_size=4, input_size=224):
 
-    if(not os.path.exists(audio_dir)):
+    if (not os.path.exists(audio_dir)):
         unzip_file('./audio.zip', './')
 
     trans(audio_dir, img_dir, force_reload=False)
