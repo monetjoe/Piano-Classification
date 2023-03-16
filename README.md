@@ -12,6 +12,7 @@ pip install scikit-learn
 pip install librosa
 pip install matplotlib
 pip install pandas
+pip install tqdm
 '''
 
 ## Usage

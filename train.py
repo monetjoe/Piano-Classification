@@ -70,13 +70,15 @@ def save_log(start_time, finish_time, cls_report, cm, log_dir):
     log_finish_time = 'Finish time  : ' + time_stamp(finish_time)
     log_time_cost = 'Time cost    : ' + \
         str((finish_time - start_time).seconds) + 's'
+    log_deepfinetune = 'DeepFinetune : ' + args.deepfinetune
 
     with open(log_dir + '/result.log', 'w', encoding='utf-8') as f:
         f.write(cls_report + '\n')
         f.write(log_backbone + '\n')
         f.write(log_start_time + '\n')
         f.write(log_finish_time + '\n')
-        f.write(log_time_cost)
+        f.write(log_time_cost + '\n')
+        f.write(log_deepfinetune)
     f.close()
 
     # save confusion_matrix
@@ -191,7 +193,7 @@ def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='train')
-    parser.add_argument('--model', type=str, default='alexnet')
+    parser.add_argument('--model', type=str, default='squeezenet1_1')
     parser.add_argument('--deepfinetune', type=bool, default=False)
     args = parser.parse_args()
 
