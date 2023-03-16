@@ -5,6 +5,15 @@
 
 Classify piano sound quality by fine-tuned pre-trained CNN models.
 
+## Requirements
+'''
+conda install pytorch==1.12.1 torchvision==0.13.1 torchaudio==0.12.1 cudatoolkit=11.3 -c pytorch
+pip install scikit-learn
+pip install librosa
+pip install matplotlib
+pip install pandas
+'''
+
 ## Usage
 
 ### Code download
