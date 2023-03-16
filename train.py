@@ -70,7 +70,7 @@ def save_log(start_time, finish_time, cls_report, cm, log_dir):
     log_finish_time = 'Finish time  : ' + time_stamp(finish_time)
     log_time_cost = 'Time cost    : ' + \
         str((finish_time - start_time).seconds) + 's'
-    log_deepfinetune = 'DeepFinetune : ' + args.deepfinetune
+    log_deepfinetune = 'DeepFinetune : ' + str(args.deepfinetune)
 
     with open(log_dir + '/result.log', 'w', encoding='utf-8') as f:
         f.write(cls_report + '\n')
@@ -92,6 +92,7 @@ def save_log(start_time, finish_time, cls_report, cm, log_dir):
     print(log_start_time)
     print(log_finish_time)
     print(log_time_cost)
+    print(log_deepfinetune)
 
 
 def save_history(model, tra_acc_list, val_acc_list, loss_list, lr_list, cls_report, cm, start_time, finish_time):
@@ -193,8 +194,8 @@ def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='train')
-    parser.add_argument('--model', type=str, default='squeezenet1_1')
-    parser.add_argument('--deepfinetune', type=bool, default=False)
+    parser.add_argument('--model', type=str, default='alexnet')
+    parser.add_argument('--deepfinetune', type=bool, default=True)
     args = parser.parse_args()
 
     train(backbone_ver=args.model, epoch_num=40)
