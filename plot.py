@@ -1,9 +1,12 @@
 import os
+import argparse
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy import signal as ss
 from data import create_dir, classes
+
+plt.rcParams['font.sans-serif'] = 'Times New Roman'
 
 
 def show_point(max_id, list):
@@ -30,9 +33,9 @@ def plot_acc(tra_acc_list, val_acc_list):
     max1 = np.argmax(y1)
     max2 = np.argmax(y2)
 
-    plt.title('Accuracy of training and validation')
-    plt.xlabel('Epoch')
-    plt.ylabel('Acc(%)')
+    plt.title('Accuracy of training and validation', fontweight='bold')
+    plt.xlabel('epoch')
+    plt.ylabel('accuracy(%)')
     plt.plot(x, y1, label="Training")
     plt.plot(x, y2, label="Validation")
     plt.plot(1+max1, y1[max1], 'r-o')
@@ -53,9 +56,9 @@ def save_acc(tra_acc_list, val_acc_list, save_path):
     max1 = np.argmax(y1)
     max2 = np.argmax(y2)
 
-    plt.title('Accuracy of training and validation')
-    plt.xlabel('Epoch')
-    plt.ylabel('Acc(%)')
+    plt.title('Accuracy of training and validation', fontweight='bold')
+    plt.xlabel('epoch')
+    plt.ylabel('accuracy(%)')
     plt.plot(x, y1, label="Training")
     plt.plot(x, y2, label="Validation")
     plt.plot(1+max1, y1[max1], 'r-o')
@@ -63,7 +66,7 @@ def save_acc(tra_acc_list, val_acc_list, save_path):
     show_point(max1, y1)
     show_point(max2, y2)
     plt.legend()
-    plt.savefig(save_path + "/acc.png")
+    plt.savefig(save_path + "/acc.pdf", bbox_inches='tight')
     plt.close()
 
 
@@ -72,11 +75,11 @@ def save_loss(loss_list, save_path):
     for i in range(len(loss_list)):
         x_loss.append(i + 1)
 
-    plt.title('Loss curve')
-    plt.xlabel('Iteration')
-    plt.ylabel('Loss')
+    plt.title('Loss curve', fontweight='bold')
+    plt.xlabel('iteration')
+    plt.ylabel('loss')
     plt.plot(x_loss, smooth(loss_list))
-    plt.savefig(save_path + "/loss.png")
+    plt.savefig(save_path + "/loss.pdf", bbox_inches='tight')
     plt.close()
 
 
@@ -85,9 +88,9 @@ def plot_loss(loss_list):
     for i in range(len(loss_list)):
         x_loss.append(i + 1)
 
-    plt.title('Loss curve')
-    plt.xlabel('Iteration')
-    plt.ylabel('Loss')
+    plt.title('Loss curve', fontweight='bold')
+    plt.xlabel('iteration')
+    plt.ylabel('loss')
     plt.plot(x_loss, smooth(loss_list))
 
 
@@ -102,7 +105,7 @@ def get_latest_log(path):
         exit()
 
     lists = os.listdir(path)
-    lists.sort(key=lambda x: os.path.getctime((path + "\\" + x)))
+    lists.sort(key=lambda x: os.path.getmtime((path + "\\" + x)))
     history = lists[-1]
     m_ver = history.split('__')[0]
 
@@ -147,32 +150,32 @@ def plot_confusion_matrix(cm, title='Confusion matrix', labels_name=classes):
     cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]    # Normalized
     # Display an image on a specific window
     plt.imshow(cm, interpolation='nearest')
-    plt.title(title)    # image caption
+    plt.title(title, fontweight='bold')    # image caption
     plt.colorbar()
     num_local = np.array(range(len(labels_name)))
     # print the labels on the x-axis coordinates
     plt.xticks(num_local, labels_name, rotation=90)
     # print the label on the y-axis coordinate
     plt.yticks(num_local, labels_name)
-    plt.ylabel('True label')
-    plt.xlabel('Predicted label')
+    plt.ylabel('true label')
+    plt.xlabel('predicted label')
 
 
 def save_confusion_matrix(cm, save_path, title='Confusion matrix', labels_name=classes):
     cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]    # Normalized
     # Display an image on a specific window
     plt.imshow(cm, interpolation='nearest')
-    plt.title(title)    # image caption
+    plt.title(title, fontweight='bold')    # image caption
     plt.colorbar()
     num_local = np.array(range(len(labels_name)))
     # print the labels on the x-axis coordinates
     plt.xticks(num_local, labels_name, rotation=90)
     # print the label on the y-axis coordinate
     plt.yticks(num_local, labels_name)
-    plt.ylabel('True label')
-    plt.xlabel('Predicted label')
+    plt.ylabel('true label')
+    plt.xlabel('predicted label')
     plt.tight_layout()
-    plt.savefig(save_path + '/mat.png')
+    plt.savefig(save_path + '/mat.pdf', bbox_inches='tight')
     plt.close()
 
 
@@ -191,14 +194,24 @@ def plot_all(latest_log=''):
     plt.show()  # Plot latest log
 
 
-def save_all(latest_log):
+def save_all(latest_log=''):
+    if latest_log == '':
+        latest_log, _ = get_latest_log('./logs')
+        latest_log = latest_log[1:]
+
     tra_acc_list, val_acc_list, loss_list, cm = load_history(
         latest_log=latest_log)
+
     save_acc(tra_acc_list, val_acc_list, './logs/' + latest_log)
     save_loss(loss_list, './logs/' + latest_log)
-    save_confusion_matrix(cm, './logs/' + latest_log)
+    save_confusion_matrix(cm, './logs/' + latest_log,
+                          labels_name=['PearlRiver', 'YoungChang', 'Steinway-T', 'Hsinghai', 'Kawai', 'Steinway', 'Kawai-G'])
     print('Re-saved.')
 
 
 if __name__ == "__main__":
-    plot_all()
+    parser = argparse.ArgumentParser(description='plot')
+    parser.add_argument('--log', type=str, default='')
+    args = parser.parse_args()
+    # Default will re-save latest log
+    save_all(args.log)
