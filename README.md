@@ -101,6 +101,6 @@ python eval.py --target ./test/KAWAI.wav
 A demo result of AlexNet fine-tuning:
 |              Index               |                                  Plot                                  |
 | :------------------------------: | :--------------------------------------------------------------------: |
-|            Loss curve            | <img src="https://picrepo.netlify.app/Piano-Classification/loss.png"/> |
-| Training and validation accuracy | <img src="https://picrepo.netlify.app/Piano-Classification/acc.png"/>  |
-|         Confusion matrix         | <img src="https://picrepo.netlify.app/Piano-Classification/mat.png"/>  |
+|            Loss curve            | ![loss](https://user-images.githubusercontent.com/20459298/233117067-380e9921-3b6d-4542-a4a7-0ba92bb95534.png) |
+| Training and validation accuracy | ![acc](https://user-images.githubusercontent.com/20459298/233117103-231c8555-1b95-49e1-938c-88eb5494d542.png)  |
+|         Confusion matrix         | ![mat](https://user-images.githubusercontent.com/20459298/233117128-d6033719-a104-4830-95c1-0038cf0cc954.png)  |
