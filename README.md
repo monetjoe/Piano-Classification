@@ -27,19 +27,19 @@ Download [dataset](https://github.com/george-chou/Piano-Classification/releases/
 
 - Piano-Classification
     - audio
-        - 1_ZhuJiang
+        - 1_PearlRiver
           - 1009.wav
           - 1010.wav
           - ...     
-        - 2_Old-YingChang
+        - 2_YoungChang
           - 2009.wav
           - 2010.wav
           - ...       
-        - 3_Steinway-Theater
-        - 4_StarSea
+        - 3_Steinway-T
+        - 4_Hsinghai
         - 5_KAWAI
         - 6_Steinway
-        - 7_KAWAI-Tri
+        - 7_Kawai-G
         - 8_Yamaha
 
 ### Train
