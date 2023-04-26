@@ -5,14 +5,7 @@ audio/*
 image/*
 audio.zip
 logs/*
-test/Golgi.png
-test/KAWAI-Tri.png
-test/KAWAI.png
-test/Old-YingChang.png
-test/StarSea.png
-test/Steinway-Theater.png
-test/Steinway.png
 test/*
-.vscode/launch.json
+.vscode/*
 debug.log
-results/dur.csv
+results/*
