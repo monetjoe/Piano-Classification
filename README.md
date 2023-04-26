@@ -37,13 +37,13 @@ Download [dataset](https://github.com/george-chou/Piano-Classification/releases/
           - ...       
         - 3_Steinway-T
         - 4_Hsinghai
-        - 5_KAWAI
+        - 5_Kawai
         - 6_Steinway
         - 7_Kawai-G
         - 8_Yamaha
 
 ### Train
-Assign a backbone(for example inception_v3) after `--model` to start training:
+Assign a backbone(take inception_v3 as an example) after `--model` to start training:
 ```
 python train.py --model inception_v3
 ```
