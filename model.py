@@ -1,29 +1,12 @@
 import os
 import torch
-import pandas as pd
-import torchvision.models as models
 from classifier import Classifier
-from utils import url_download, create_dir, backbone_list_path
+from utils import url_download, create_dir, get_backbone
 from data import classes
 
 
-def backbone_exist(backbone_ver):
-    if not os.path.exists(backbone_list_path):
-        print('Backbone list not found.')
-        exit()
-
-    data = pd.read_csv(backbone_list_path)
-    backbone_list = data['ver'].tolist()
-    return backbone_ver in backbone_list
-
-
 def model_info(backbone_ver):
-    if not backbone_exist(backbone_ver):
-        print('Unsupported backbone version.')
-        exit()
-
-    data = pd.read_csv(backbone_list_path, index_col='ver')
-    backbone = data.loc[backbone_ver]
+    backbone = get_backbone(backbone_ver)
     input_size = int(backbone['input_size'])
     output_size = int(backbone['output_size'])
     m_type = str(backbone['type'])
@@ -118,11 +101,3 @@ class Net():
 
     def state_dict(self):
         return self.model.state_dict()
-
-
-if __name__ == "__main__":
-    if not os.path.exists(backbone_list_path):
-        print('Backbone list not found.')
-        exit()
-
-    print(pd.read_csv(backbone_list_path, index_col='ver'))

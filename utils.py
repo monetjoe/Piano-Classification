@@ -1,3 +1,4 @@
+from datasets import load_dataset
 import os
 import time
 import torch
@@ -11,7 +12,17 @@ data_dir = './dataset'
 tra_dir = data_dir + '/tra'
 val_dir = data_dir + '/val'
 tes_dir = data_dir + '/tes'
-backbone_list_path = './backbone.csv'
+backbone_list = load_dataset("george-chou/CNN-backbones")['train']
+
+
+def get_backbone(ver):
+    for bb in backbone_list:
+        if ver == bb['ver']:
+            return bb
+
+    print('Backbone name not found, use default option - alexnet.')
+    return backbone_list[0]
+
 
 def url_download(url: str, fname: str):
     resp = requests.get(url, stream=True)
