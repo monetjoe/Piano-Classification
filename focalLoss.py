@@ -6,8 +6,9 @@ from data import calc_alpha
 
 
 class FocalLoss(nn.Module):
-    def __init__(self, gamma=2, alpha=calc_alpha(), size_average=True):
+    def __init__(self, gamma=2, size_average=True):
         super(FocalLoss, self).__init__()
+        alpha = calc_alpha()
         class_num = len(alpha)
         if alpha is None:  # Now is impossible
             self.alpha = Variable(torch.ones(class_num, 1) / class_num)

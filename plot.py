@@ -5,6 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from scipy import signal as ss
 from data import create_dir, classes
+from utils import *
 
 plt.rcParams['font.sans-serif'] = 'Times New Roman'
 
@@ -120,7 +121,7 @@ def valid_path(log_path, latest_log):
     return os.path.exists(dir_path)
 
 
-def load_history(log_dir='./logs', latest_log=''):
+def load_history(log_dir=results_dir, latest_log=''):
 
     create_dir(log_dir)
 
@@ -196,16 +197,15 @@ def plot_all(latest_log=''):
 
 def save_all(latest_log=''):
     if latest_log == '':
-        latest_log, _ = get_latest_log('./logs')
+        latest_log, _ = get_latest_log(results_dir)
         latest_log = latest_log[1:]
 
     tra_acc_list, val_acc_list, loss_list, cm = load_history(
         latest_log=latest_log)
 
-    save_acc(tra_acc_list, val_acc_list, './logs/' + latest_log)
-    save_loss(loss_list, './logs/' + latest_log)
-    save_confusion_matrix(cm, './logs/' + latest_log,
-                          labels_name=['PearlRiver', 'YoungChang', 'Steinway-T', 'Hsinghai', 'Kawai', 'Steinway', 'Kawai-G'])
+    save_acc(tra_acc_list, val_acc_list, results_dir + '/' + latest_log)
+    save_loss(loss_list, results_dir + '/' + latest_log)
+    save_confusion_matrix(cm, results_dir + '/' + latest_log)
     print('Re-saved.')
 
 

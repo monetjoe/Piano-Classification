@@ -6,13 +6,19 @@ import zipfile
 import requests
 from tqdm import tqdm
 
-audio_dir = './audio'
-img_dir = './image'
-data_dir = './dataset'
-tra_dir = data_dir + '/tra'
-val_dir = data_dir + '/val'
-tes_dir = data_dir + '/tes'
+data_dir = './data'
+audio_zip = data_dir + '/audio.zip'
+audio_dir = data_dir + '/audio'
+img_dir = data_dir + '/image'
+set_dir = data_dir + '/dataset'
+tra_dir = set_dir + '/tra'
+val_dir = set_dir + '/val'
+tes_dir = set_dir + '/tes'
+results_dir = './logs'
+model_dir = './model'
+dur_path = results_dir + "/dur.csv"
 backbone_list = load_dataset("george-chou/CNN-backbones")['train']
+PSQD_url = 'https://huggingface.co/datasets/george-chou/Piano-Sound-Quality-Database/resolve/main/audio.zip'
 
 
 def get_backbone(ver):
@@ -24,9 +30,15 @@ def get_backbone(ver):
     return backbone_list[0]
 
 
+def create_dir(dir):
+    if not os.path.exists(dir):
+        os.mkdir(dir)
+
+
 def url_download(url: str, fname: str):
     resp = requests.get(url, stream=True)
     total = int(resp.headers.get('content-length', 0))
+    create_dir(data_dir)
     with open(fname, 'wb') as file, tqdm(
         desc=fname,
         total=total,
@@ -37,11 +49,6 @@ def url_download(url: str, fname: str):
         for data in resp.iter_content(chunk_size=1024):
             size = file.write(data)
             bar.update(size)
-
-
-def create_dir(dir):
-    if not os.path.exists(dir):
-        os.mkdir(dir)
 
 
 def unzip_file(zip_src, dst_dir):

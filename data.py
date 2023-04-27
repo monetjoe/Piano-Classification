@@ -67,7 +67,6 @@ def trans(audio_dir, img_dir, force_reload=True):
 
 
 def save_audio_dur(audio_name, dur):
-    dur_path = "./results/dur.csv"
     if not os.path.exists(dur_path):
         with open(dur_path, "a", newline='') as csvfile:
             writer = csv.writer(csvfile)
@@ -80,8 +79,8 @@ def trans_files(cls_dir, img_dir):
         for filename in filenames:
             audio_name, dur = to_mel(
                 cls_dir + '/' + filename, img_dir, width=0.2)
-            if not os.path.exists('./results'):
-                os.mkdir('./results')
+            if not os.path.exists(results_dir):
+                os.mkdir(results_dir)
             save_audio_dur(audio_name, dur)
 
 
@@ -173,21 +172,21 @@ def load_data(img_dir, data_dir, force_reload=True):
 
 
 def copy_img(img_name, tag_dir):
-    # cls_id = int(img_name[0])
-    # cls = str(cls_id) + '_' + classes[cls_id - 1]
     cls = img_name.split('__')[0]
     outdir = tag_dir + '/' + cls
     create_dir(outdir)
-    shutil.copy('./image/' + img_name, outdir)
+    shutil.copy(img_dir + '/' + img_name, outdir)
 
 
 def prepare_data(batch_size=4, input_size=224):
 
-    if (not os.path.exists(audio_dir)):
-        unzip_file('./audio.zip', './')
+    if not os.path.exists(audio_dir):
+        if not os.path.exists(audio_zip):
+            url_download(PSQD_url, audio_zip)
+        unzip_file(audio_zip, audio_dir)
 
     trans(audio_dir, img_dir, force_reload=False)
-    load_data(img_dir, data_dir, force_reload=False)
+    load_data(img_dir, set_dir, force_reload=False)
 
     print('Embedding data...')
     trainLoader = embedding(tra_dir, batch_size, input_size)
@@ -196,8 +195,3 @@ def prepare_data(batch_size=4, input_size=224):
     print('Data embedded.')
 
     return trainLoader, validLoader, testLoader
-
-
-if __name__ == "__main__":
-    trans(audio_dir, img_dir, force_reload=False)
-    load_data(img_dir, data_dir)

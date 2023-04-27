@@ -9,7 +9,7 @@ import torchvision.transforms as transforms
 from PIL import Image
 from model import Net
 from train import train
-from utils import time_stamp, create_dir
+from utils import time_stamp, create_dir, results_dir
 from plot import get_latest_log, valid_path
 from data import get_duration_wav, classes
 
@@ -82,7 +82,7 @@ def get_saved_model(log_dir, history):
     return saved_model_path, m_ver
 
 
-def eval(tag='', log_dir='./logs', history='', split_mode=False, cls_num=len(classes)):
+def eval(tag='', log_dir=results_dir, history='', split_mode=False, cls_num=len(classes)):
 
     if not os.path.exists(tag):
         print('Target not found.')

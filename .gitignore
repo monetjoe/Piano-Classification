@@ -1,9 +1,7 @@
 dataset/*
 __pycache__/*
 model/*
-audio/*
-image/*
-audio.zip
+data/*
 logs/*
 test/*
 .vscode/*

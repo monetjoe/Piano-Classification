@@ -7,9 +7,9 @@ import torch.utils.data
 import torch.optim as optim
 from datetime import datetime
 from model import Net
-from focalLoss import FocalLoss
 from data import prepare_data, classes
-from utils import time_stamp, create_dir, toCUDA
+from focalLoss import FocalLoss
+from utils import time_stamp, create_dir, toCUDA, results_dir
 from plot import save_acc, save_loss, save_confusion_matrix
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
 import warnings
@@ -96,8 +96,8 @@ def save_log(start_time, finish_time, cls_report, cm, log_dir):
 
 
 def save_history(model, tra_acc_list, val_acc_list, loss_list, lr_list, cls_report, cm, start_time, finish_time):
-    create_dir('./logs')
-    log_dir = './logs/' + args.model + '__' + time_stamp()
+    create_dir(results_dir)
+    log_dir = results_dir + '/' + args.model + '__' + time_stamp()
     create_dir(log_dir)
 
     acc_len = len(tra_acc_list)

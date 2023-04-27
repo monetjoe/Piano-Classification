@@ -1,7 +1,8 @@
 import os
 import torch
+import torchvision.models as models # save this line, it is called by class Net()
 from classifier import Classifier
-from utils import url_download, create_dir, get_backbone
+from utils import url_download, create_dir, get_backbone, model_dir
 from data import classes
 
 
@@ -16,8 +17,7 @@ def model_info(backbone_ver):
 
 
 def download_model(pre_model_url):
-    model_dir = './model/'
-    pre_model_path = model_dir + (pre_model_url.split('/')[-1])
+    pre_model_path = model_dir + '/' + (pre_model_url.split('/')[-1])
     create_dir(model_dir)
 
     if not os.path.exists(pre_model_path):
