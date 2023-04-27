@@ -3,3 +3,5 @@ librosa
 matplotlib
 pandas
 tqdm
+autopep8
+datasets
