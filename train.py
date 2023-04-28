@@ -71,6 +71,7 @@ def save_log(start_time, finish_time, cls_report, cm, log_dir):
     log_time_cost = 'Time cost    : ' + \
         str((finish_time - start_time).seconds) + 's'
     log_deepfinetune = 'DeepFinetune : ' + str(args.deepfinetune)
+    log_focal_loss = 'Use focal loss : ' + str(args.fl)
 
     with open(log_dir + '/result.log', 'w', encoding='utf-8') as f:
         f.write(cls_report + '\n')
@@ -78,7 +79,8 @@ def save_log(start_time, finish_time, cls_report, cm, log_dir):
         f.write(log_start_time + '\n')
         f.write(log_finish_time + '\n')
         f.write(log_time_cost + '\n')
-        f.write(log_deepfinetune)
+        f.write(log_deepfinetune + '\n')
+        f.write(log_focal_loss + '\n')
     f.close()
 
     # save confusion_matrix
@@ -93,6 +95,7 @@ def save_log(start_time, finish_time, cls_report, cm, log_dir):
     print(log_finish_time)
     print(log_time_cost)
     print(log_deepfinetune)
+    print(log_focal_loss)
 
 
 def save_history(model, tra_acc_list, val_acc_list, loss_list, lr_list, cls_report, cm, start_time, finish_time):
@@ -135,8 +138,7 @@ def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
         batch_size=4, input_size=model.input_size)
 
     #optimizer and loss
-    # criterion = nn.CrossEntropyLoss()
-    criterion = FocalLoss()
+    criterion = FocalLoss() if args.fl else nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr, momentum=0.9)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode='min', factor=0.1, patience=5, verbose=True,
@@ -194,7 +196,8 @@ def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='train')
-    parser.add_argument('--model', type=str, default='alexnet')
+    parser.add_argument('--model', type=str, default='squeezenet1_1')
+    parser.add_argument('--fl', type=bool, default=True)
     parser.add_argument('--deepfinetune', type=bool, default=True)
     args = parser.parse_args()
 

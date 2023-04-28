@@ -1,9 +1,10 @@
 import os
 import torch
-import torchvision.models as models # save this line, it is called by class Net()
 from classifier import Classifier
 from utils import url_download, create_dir, get_backbone, model_dir
 from data import classes
+# save below line, it is called by class Net() hiddenly
+import torchvision.models as models
 
 
 def model_info(backbone_ver):
