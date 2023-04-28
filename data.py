@@ -195,3 +195,13 @@ def prepare_data(batch_size=4, input_size=224):
     print('Data embedded.')
 
     return trainLoader, validLoader, testLoader
+
+
+if __name__ == "__main__":
+    if not os.path.exists(audio_dir):
+        if not os.path.exists(audio_zip):
+            url_download(PSQD_url, audio_zip)
+        unzip_file(audio_zip, audio_dir)
+
+    trans(audio_dir, img_dir, force_reload=True)
+    load_data(img_dir, set_dir, force_reload=True)

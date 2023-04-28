@@ -26,7 +26,7 @@ def get_backbone(ver):
         if ver == bb['ver']:
             return bb
 
-    print('Backbone name not found, use default option - alexnet.')
+    print('Backbone name not found, using default option - alexnet.')
     return backbone_list[0]
 
 
