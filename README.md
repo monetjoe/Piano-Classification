@@ -21,28 +21,6 @@ pip install -r requirements.txt
 git clone https://github.com/george-chou/Piano-Classification.git
 cd Piano-Classification
 ```
-### Dataset
-
-Download [dataset](https://huggingface.co/datasets/george-chou/Piano-Sound-Quality-Database/resolve/main/audio.zip) and extract it into the project path as following directory structure:
-
-- Piano-Classification
-    - audio
-        - 1_PearlRiver
-          - 1009.wav
-          - 1010.wav
-          - ...     
-        - 2_YoungChang
-          - 2009.wav
-          - 2010.wav
-          - ...       
-        - 3_Steinway-T
-        - 4_Hsinghai
-        - 5_Kawai
-        - 6_Steinway
-        - 7_Kawai-G
-        - 8_Yamaha
-
-The latest program can download and unzip it automatically.
 
 ### Train
 Assign a backbone(take inception_v3 as an example) after `--model` to start training:
