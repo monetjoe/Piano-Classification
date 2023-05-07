@@ -1,9 +1,9 @@
 import torch
 import torch.nn as nn
-from data import classes
+# from data import classes
 
 
-def Classifier(output_size, backbone_type='alexnet', cls_num=len(classes)):
+def Classifier(cls_num, output_size, backbone_type='alexnet'):
 
     if backbone_type == 'alexnet':
         return torch.nn.Sequential(

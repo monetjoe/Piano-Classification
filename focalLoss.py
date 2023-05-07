@@ -2,13 +2,24 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
-from data import calc_alpha
+# from data import calc_alpha
+
+
+def calc_alpha(sample_sizes, use_softmax=False):
+    data_sizes = 1.0 / torch.tensor(sample_sizes)
+    if use_softmax:
+        data_sizes = F.softmax(data_sizes)
+
+    else:
+        data_sizes = data_sizes / data_sizes.sum()
+
+    return data_sizes
 
 
 class FocalLoss(nn.Module):
-    def __init__(self, gamma=2, size_average=True):
+    def __init__(self, sample_sizes, gamma=2, size_average=True):
         super(FocalLoss, self).__init__()
-        alpha = calc_alpha()
+        alpha = calc_alpha(sample_sizes)
         class_num = len(alpha)
         if alpha is None:  # Now is impossible
             self.alpha = Variable(torch.ones(class_num, 1) / class_num)

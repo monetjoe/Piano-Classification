@@ -1,14 +1,25 @@
 import os
 import torch
+from datasets import load_dataset
 from classifier import Classifier
-from utils import url_download, create_dir, get_backbone, model_dir
-from data import classes
+from utils import url_download, create_dir, model_dir
+# from data import classes
 # save below line, it is called by class Net() hiddenly
 import torchvision.models as models
 
 
+def get_backbone(ver, backbone_list):
+    for bb in backbone_list:
+        if ver == bb['ver']:
+            return bb
+
+    print('Backbone name not found, using default option - alexnet.')
+    return backbone_list[0]
+
+
 def model_info(backbone_ver):
-    backbone = get_backbone(backbone_ver)
+    backbone_list = load_dataset("george-chou/CNN_backbones", split="train")
+    backbone = get_backbone(backbone_ver, backbone_list)
     input_size = int(backbone['input_size'])
     output_size = int(backbone['output_size'])
     m_type = str(backbone['type'])
@@ -27,18 +38,16 @@ def download_model(pre_model_url):
     return pre_model_path
 
 
-def set_classifier(model, output_size, m_type, cls_num=len(classes)):
+def set_classifier(model, output_size, m_type, cls_num):
     if hasattr(model, 'classifier'):
         model.classifier = Classifier(
-            output_size, backbone_type=m_type, cls_num=cls_num)
+            cls_num, output_size, backbone_type=m_type)
 
     elif hasattr(model, 'fc'):
-        model.fc = Classifier(
-            output_size, backbone_type=m_type, cls_num=cls_num)
+        model.fc = Classifier(cls_num, output_size, backbone_type=m_type)
 
 
 class Net():
-
     model = None
     m_url, m_type = '', ''
     input_size = 224
@@ -46,7 +55,8 @@ class Net():
     training = True
     deep_finetune = False
 
-    def __init__(self, m_ver='alexnet', saved_model_path='', deep_finetune=False, cls_num=len(classes)):
+    def __init__(self, cls_num, m_ver='alexnet', saved_model_path='', deep_finetune=False):
+
         self.training = (saved_model_path == '')
         self.deep_finetune = deep_finetune
         self.m_url, self.m_type, self.input_size, self.output_size = model_info(
@@ -64,7 +74,7 @@ class Net():
             for parma in self.model.parameters():
                 parma.requires_grad = self.deep_finetune
 
-            set_classifier(self.model, self.output_size, self.m_type)
+            set_classifier(self.model, self.output_size, self.m_type, cls_num)
             self.model.train()
 
         else:

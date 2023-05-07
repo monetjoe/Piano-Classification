@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy import signal as ss
-from data import create_dir, classes
+# from data import create_dir, classes
 from utils import *
 
 plt.rcParams['font.sans-serif'] = 'Times New Roman'
@@ -147,7 +147,7 @@ def load_history(log_dir=results_dir, latest_log=''):
     return tra_acc_list, val_acc_list, loss_list, cm
 
 
-def plot_confusion_matrix(cm, title='Confusion matrix', labels_name=classes):
+def plot_confusion_matrix(cm, labels_name, title='Confusion matrix'):
     cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]    # Normalized
     # Display an image on a specific window
     plt.imshow(cm, interpolation='nearest')
@@ -162,7 +162,7 @@ def plot_confusion_matrix(cm, title='Confusion matrix', labels_name=classes):
     plt.xlabel('predicted label')
 
 
-def save_confusion_matrix(cm, save_path, title='Confusion matrix', labels_name=classes):
+def save_confusion_matrix(cm, labels_name, save_path, title='Confusion matrix'):
     cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]    # Normalized
     # Display an image on a specific window
     plt.imshow(cm, interpolation='nearest')
@@ -180,7 +180,7 @@ def save_confusion_matrix(cm, save_path, title='Confusion matrix', labels_name=c
     plt.close()
 
 
-def plot_all(latest_log=''):
+def plot_all(labels_name, latest_log=''):
     tra_acc_list, val_acc_list, loss_list, cm = load_history(
         latest_log=latest_log)
 
@@ -190,7 +190,7 @@ def plot_all(latest_log=''):
     plt.subplot(222)
     plot_loss(loss_list)
     plt.subplot(224)
-    plot_confusion_matrix(cm)
+    plot_confusion_matrix(cm, labels_name)
     plt.tight_layout()
     plt.show()  # Plot latest log
 

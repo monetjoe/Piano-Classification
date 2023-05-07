@@ -1,4 +1,3 @@
-from datasets import load_dataset
 import os
 import time
 import torch
@@ -16,18 +15,11 @@ val_dir = set_dir + '/val'
 tes_dir = set_dir + '/tes'
 results_dir = './logs'
 model_dir = './model'
-dur_path = results_dir + "/dur.csv"
-backbone_list = load_dataset("george-chou/CNN-backbones")['train']
+# dur_path = results_dir + "/dur.csv"
+# backbone_list = load_dataset("george-chou/CNN-backbones")['train']
 PSQD_url = 'https://huggingface.co/datasets/george-chou/Piano-Sound-Quality-Database/resolve/main/audio.zip'
 
 
-def get_backbone(ver):
-    for bb in backbone_list:
-        if ver == bb['ver']:
-            return bb
-
-    print('Backbone name not found, using default option - alexnet.')
-    return backbone_list[0]
 
 
 def create_dir(dir):

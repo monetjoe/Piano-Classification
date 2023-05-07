@@ -7,7 +7,10 @@ import torch.utils.data
 import torch.optim as optim
 from datetime import datetime
 from model import Net
-from data import prepare_data, classes
+from datasets import load_dataset
+from torch.utils.data import DataLoader
+from torchvision.transforms import *
+# from data import prepare_data, classes
 from focalLoss import FocalLoss
 from utils import time_stamp, create_dir, toCUDA, results_dir
 from plot import save_acc, save_loss, save_confusion_matrix
@@ -15,12 +18,56 @@ from sklearn.metrics import classification_report, accuracy_score, confusion_mat
 import warnings
 warnings.filterwarnings("ignore")
 
+parser = argparse.ArgumentParser(description='train')
+parser.add_argument('--model', type=str, default='squeezenet1_1')
+parser.add_argument('--fl', type=bool, default=True)
+parser.add_argument('--deepfinetune', type=bool, default=True)
+args = parser.parse_args()
+
+compose = Compose([
+    Resize(300),
+    CenterCrop(300),
+    RandomAffine(5),
+    ToTensor(),
+    Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+])
+
+ds = load_dataset("george-chou/pianos_mel")
+classes = ds['test'].features['label'].names
+if args.fl:
+    num_samples_in_each_category = {k: 0 for k in classes}
+    for item in ds['train']:
+        num_samples_in_each_category[classes[item['label']]] += 1
+
+    print(num_samples_in_each_category)
+
+cls_num = len(classes)
+
+
+def transform(example_batch):
+    inputs = [compose(x.convert('RGB')) for x in example_batch["image"]]
+    example_batch["image"] = inputs
+    return example_batch
+
+
+def prepare_data(batch_size=4, shuffle=True, num_workers=2):
+    print('Preparing data...')
+    trainset = ds['train'].with_transform(transform)
+    validset = ds['validation'].with_transform(transform)
+    testset = ds['test'].with_transform(transform)
+    traLoader = DataLoader(trainset, batch_size, shuffle, num_workers)
+    valLoader = DataLoader(validset, batch_size, shuffle, num_workers)
+    tesLoader = DataLoader(testset, batch_size, shuffle, num_workers)
+    print('Data loaded.')
+
+    return traLoader, valLoader, tesLoader
+
 
 def eval_model_train(model, trainLoader, tra_acc_list):
     y_true, y_pred = [], []
     with torch.no_grad():
         for data in trainLoader:
-            inputs, labels = data[0], toCUDA(data[1])
+            inputs, labels = toCUDA(data['image']), toCUDA(data['label'])
             outputs = model.forward(inputs)
             predicted = torch.max(outputs.data, 1)[1]
             y_true.extend(labels.tolist())
@@ -35,7 +82,7 @@ def eval_model_valid(model, validationLoader, val_acc_list):
     y_true, y_pred = [], []
     with torch.no_grad():
         for data in validationLoader:
-            inputs, labels = data[0], toCUDA(data[1])
+            inputs, labels = toCUDA(data['image']), toCUDA(data['label'])
             outputs = model.forward(inputs)
             predicted = torch.max(outputs.data, 1)[1]
             y_true.extend(labels.tolist())
@@ -50,21 +97,20 @@ def eval_model_test(model, testLoader):
     y_true, y_pred = [], []
     with torch.no_grad():
         for data in testLoader:
-            inputs, labels = data[0], toCUDA(data[1])
+            inputs, labels = toCUDA(data['image']), toCUDA(data['label'])
             outputs = model.forward(inputs)
             predicted = torch.max(outputs.data, 1)[1]
             y_true.extend(labels.tolist())
             y_pred.extend(predicted.tolist())
 
     report = classification_report(
-        y_true, y_pred, target_names=classes, digits=3)
+        y_true, y_pred, target_names=cls_num, digits=3)
     cm = confusion_matrix(y_true, y_pred, normalize='all')
 
     return report, cm
 
 
 def save_log(start_time, finish_time, cls_report, cm, log_dir):
-
     log_backbone = 'Backbone     : ' + args.model
     log_start_time = 'Start time   : ' + time_stamp(start_time)
     log_finish_time = 'Finish time  : ' + time_stamp(finish_time)
@@ -85,7 +131,7 @@ def save_log(start_time, finish_time, cls_report, cm, log_dir):
 
     # save confusion_matrix
     np.savetxt(log_dir + '/mat.csv', cm, delimiter=',')
-    save_confusion_matrix(cm, log_dir)
+    save_confusion_matrix(cm, classes, log_dir)
 
     print(cls_report)
     print('Confusion matrix :')
@@ -125,20 +171,20 @@ def save_history(model, tra_acc_list, val_acc_list, loss_list, lr_list, cls_repo
     save_log(start_time, finish_time, cls_report, cm, log_dir)
 
 
-def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
-
+def train(backbone_ver='alexnet', epoch_num=1, iteration=10, lr=0.001):
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     tra_acc_list, val_acc_list, loss_list, lr_list = [], [], [], []
 
     # init model
-    model = Net(m_ver=backbone_ver, deep_finetune=args.deepfinetune)
+    model = Net(cls_num, m_ver=backbone_ver, deep_finetune=args.deepfinetune)
 
     # load data
     trainLoader, validLoader, testLoader = prepare_data(
         batch_size=4, input_size=model.input_size)
 
     #optimizer and loss
-    criterion = FocalLoss() if args.fl else nn.CrossEntropyLoss()
+    criterion = FocalLoss(num_samples_in_each_category.values()
+                          ) if args.fl else nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr, momentum=0.9)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode='min', factor=0.1, patience=5, verbose=True,
@@ -165,7 +211,7 @@ def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
         running_loss = 0.0
         for i, data in enumerate(trainLoader, 0):
             # get the inputs
-            inputs, labels = data[0], toCUDA(data[1])
+            inputs, labels = toCUDA(data['image']), toCUDA(data['label'])
             # zero the parameter gradients
             optimizer.zero_grad()
 
@@ -179,7 +225,7 @@ def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
             running_loss += loss.item()
             # print every 2000 mini-batches
             if i % iteration == iteration - 1:
-                print('[%d, %5d] loss: %.3f' %
+                print('[%d, %5d] loss: %.4f' %
                       (epoch + 1, i + 1, running_loss / iteration))
                 loss_list.append(running_loss / iteration)
             running_loss = 0.0
@@ -195,10 +241,4 @@ def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='train')
-    parser.add_argument('--model', type=str, default='squeezenet1_1')
-    parser.add_argument('--fl', type=bool, default=True)
-    parser.add_argument('--deepfinetune', type=bool, default=True)
-    args = parser.parse_args()
-
     train(backbone_ver=args.model, epoch_num=40)
