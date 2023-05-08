@@ -24,27 +24,15 @@ parser.add_argument('--fl', type=bool, default=True)
 parser.add_argument('--deepfinetune', type=bool, default=True)
 args = parser.parse_args()
 
-compose = Compose([
-    Resize(300),
-    CenterCrop(300),
-    RandomAffine(5),
-    ToTensor(),
-    Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-])
-
-ds = load_dataset("george-chou/pianos_mel")
-classes = ds['test'].features['label'].names
-if args.fl:
-    num_samples_in_each_category = {k: 0 for k in classes}
-    for item in ds['train']:
-        num_samples_in_each_category[classes[item['label']]] += 1
-
-    print(num_samples_in_each_category)
-
-cls_num = len(classes)
-
 
 def transform(example_batch):
+    compose = Compose([
+        Resize(300),
+        CenterCrop(300),
+        RandomAffine(5),
+        ToTensor(),
+        Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    ])
     inputs = [compose(x.convert('RGB')) for x in example_batch["image"]]
     example_batch["image"] = inputs
     return example_batch
@@ -52,6 +40,13 @@ def transform(example_batch):
 
 def prepare_data(batch_size=4, shuffle=True, num_workers=2):
     print('Preparing data...')
+    ds = load_dataset("george-chou/pianos_mel")
+    classes = ds['test'].features['label'].names
+    if args.fl:
+        num_samples_in_each_category = {k: 0 for k in classes}
+        for item in ds['train']:
+            num_samples_in_each_category[classes[item['label']]] += 1
+
     trainset = ds['train'].with_transform(transform)
     validset = ds['validation'].with_transform(transform)
     testset = ds['test'].with_transform(transform)
@@ -63,7 +58,7 @@ def prepare_data(batch_size=4, shuffle=True, num_workers=2):
                            shuffle=shuffle, num_workers=num_workers)
     print('Data loaded.')
 
-    return traLoader, valLoader, tesLoader
+    return traLoader, valLoader, tesLoader, classes, list(num_samples_in_each_category.values())
 
 
 def eval_model_train(model, trainLoader, tra_acc_list):
@@ -96,7 +91,7 @@ def eval_model_valid(model, validationLoader, val_acc_list):
     val_acc_list.append(acc)
 
 
-def eval_model_test(model, testLoader):
+def eval_model_test(model, testLoader, classes):
     y_true, y_pred = [], []
     with torch.no_grad():
         for data in testLoader:
@@ -113,14 +108,14 @@ def eval_model_test(model, testLoader):
     return report, cm
 
 
-def save_log(start_time, finish_time, cls_report, cm, log_dir):
+def save_log(start_time, finish_time, cls_report, cm, log_dir, classes):
     log_backbone = 'Backbone     : ' + args.model
     log_start_time = 'Start time   : ' + time_stamp(start_time)
     log_finish_time = 'Finish time  : ' + time_stamp(finish_time)
     log_time_cost = 'Time cost    : ' + \
         str((finish_time - start_time).seconds) + 's'
     log_deepfinetune = 'DeepFinetune : ' + str(args.deepfinetune)
-    log_focal_loss = 'Use focal loss : ' + str(args.fl)
+    log_focal_loss = 'Focal loss   : ' + str(args.fl)
 
     with open(log_dir + '/result.log', 'w', encoding='utf-8') as f:
         f.write(cls_report + '\n')
@@ -147,7 +142,7 @@ def save_log(start_time, finish_time, cls_report, cm, log_dir):
     print(log_focal_loss)
 
 
-def save_history(model, tra_acc_list, val_acc_list, loss_list, lr_list, cls_report, cm, start_time, finish_time):
+def save_history(model, tra_acc_list, val_acc_list, loss_list, lr_list, cls_report, cm, start_time, finish_time, classes):
     create_dir(results_dir)
     log_dir = results_dir + '/' + args.model + '__' + time_stamp()
     create_dir(log_dir)
@@ -171,22 +166,22 @@ def save_history(model, tra_acc_list, val_acc_list, loss_list, lr_list, cls_repo
 
     save_acc(tra_acc_list, val_acc_list, log_dir)
     save_loss(loss_list, log_dir)
-    save_log(start_time, finish_time, cls_report, cm, log_dir)
+    save_log(start_time, finish_time, cls_report, cm, log_dir, classes)
 
 
 def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     tra_acc_list, val_acc_list, loss_list, lr_list = [], [], [], []
 
+    # load data
+    trainLoader, validLoader, testLoader, classes, num_samples = prepare_data()
+    cls_num = len(classes)
+
     # init model
     model = Net(cls_num, m_ver=backbone_ver, deep_finetune=args.deepfinetune)
 
-    # load data
-    trainLoader, validLoader, testLoader = prepare_data()
-
-    #optimizer and loss
-    criterion = FocalLoss(list(num_samples_in_each_category.values())
-                          ) if args.fl else nn.CrossEntropyLoss()
+    # optimizer and loss
+    criterion = FocalLoss(num_samples) if args.fl else nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr, momentum=0.9)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode='min', factor=0.1, patience=5, verbose=True,
@@ -237,10 +232,10 @@ def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
         scheduler.step(loss.item())
 
     finish_time = datetime.now()
-    cls_report, cm = eval_model_test(model, testLoader)
+    cls_report, cm = eval_model_test(model, testLoader, classes)
     save_history(model, tra_acc_list, val_acc_list, loss_list,
-                 lr_list, cls_report, cm, start_time, finish_time)
+                 lr_list, cls_report, cm, start_time, finish_time, classes)
 
 
 if __name__ == "__main__":
-    train(backbone_ver=args.model, epoch_num=1)
+    train(backbone_ver=args.model, epoch_num=40)
