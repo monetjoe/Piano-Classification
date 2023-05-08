@@ -55,9 +55,12 @@ def prepare_data(batch_size=4, shuffle=True, num_workers=2):
     trainset = ds['train'].with_transform(transform)
     validset = ds['validation'].with_transform(transform)
     testset = ds['test'].with_transform(transform)
-    traLoader = DataLoader(trainset, batch_size, shuffle, num_workers)
-    valLoader = DataLoader(validset, batch_size, shuffle, num_workers)
-    tesLoader = DataLoader(testset, batch_size, shuffle, num_workers)
+    traLoader = DataLoader(trainset, batch_size=batch_size,
+                           shuffle=shuffle, num_workers=num_workers)
+    valLoader = DataLoader(validset, batch_size=batch_size,
+                           shuffle=shuffle, num_workers=num_workers)
+    tesLoader = DataLoader(testset, batch_size=batch_size,
+                           shuffle=shuffle, num_workers=num_workers)
     print('Data loaded.')
 
     return traLoader, valLoader, tesLoader
@@ -104,7 +107,7 @@ def eval_model_test(model, testLoader):
             y_pred.extend(predicted.tolist())
 
     report = classification_report(
-        y_true, y_pred, target_names=cls_num, digits=3)
+        y_true, y_pred, target_names=classes, digits=3)
     cm = confusion_matrix(y_true, y_pred, normalize='all')
 
     return report, cm
@@ -171,7 +174,7 @@ def save_history(model, tra_acc_list, val_acc_list, loss_list, lr_list, cls_repo
     save_log(start_time, finish_time, cls_report, cm, log_dir)
 
 
-def train(backbone_ver='alexnet', epoch_num=1, iteration=10, lr=0.001):
+def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     tra_acc_list, val_acc_list, loss_list, lr_list = [], [], [], []
 
@@ -179,11 +182,10 @@ def train(backbone_ver='alexnet', epoch_num=1, iteration=10, lr=0.001):
     model = Net(cls_num, m_ver=backbone_ver, deep_finetune=args.deepfinetune)
 
     # load data
-    trainLoader, validLoader, testLoader = prepare_data(
-        batch_size=4, input_size=model.input_size)
+    trainLoader, validLoader, testLoader = prepare_data()
 
     #optimizer and loss
-    criterion = FocalLoss(num_samples_in_each_category.values()
+    criterion = FocalLoss(list(num_samples_in_each_category.values())
                           ) if args.fl else nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr, momentum=0.9)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
@@ -241,4 +243,4 @@ def train(backbone_ver='alexnet', epoch_num=1, iteration=10, lr=0.001):
 
 
 if __name__ == "__main__":
-    train(backbone_ver=args.model, epoch_num=40)
+    train(backbone_ver=args.model, epoch_num=1)
