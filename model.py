@@ -1,11 +1,10 @@
 import os
 import torch
-from datasets import load_dataset
-from classifier import Classifier
-from utils import url_download, create_dir, model_dir
-# from data import classes
-# save below line, it is called by class Net() hiddenly
+import torch.nn as nn
 import torchvision.models as models
+from datasets import load_dataset
+# from classifier import Classifier
+from utils import url_download, create_dir, model_dir
 
 
 def get_backbone(ver, backbone_list):
@@ -18,14 +17,17 @@ def get_backbone(ver, backbone_list):
 
 
 def model_info(backbone_ver):
-    backbone_list = load_dataset("george-chou/CNN_backbones", split="train")
+    backbone_list = load_dataset(
+        path="george-chou/vi_backbones",
+        split="IMAGENET1K_V1"
+    )
     backbone = get_backbone(backbone_ver, backbone_list)
-    input_size = int(backbone['input_size'])
-    output_size = int(backbone['output_size'])
+    m_name = str(backbone['name'])
     m_type = str(backbone['type'])
+    input_size = int(backbone['input_size'])
     m_url = str(backbone['url'])
 
-    return m_url, m_type, input_size, output_size
+    return m_name, m_type, input_size, m_url
 
 
 def download_model(pre_model_url):
@@ -38,30 +40,48 @@ def download_model(pre_model_url):
     return pre_model_path
 
 
-def set_classifier(model, output_size, m_type, cls_num):
-    if hasattr(model, 'classifier'):
-        model.classifier = Classifier(
-            cls_num, output_size, backbone_type=m_type)
+def Classifier(cls_num, output_size):
+    q = (1.0 * output_size / cls_num) ** 0.25
+    l1 = int(q * cls_num)
+    l2 = int(q * l1)
+    l3 = int(q * l2)
 
-    elif hasattr(model, 'fc'):
-        model.fc = Classifier(cls_num, output_size, backbone_type=m_type)
+    return torch.nn.Sequential(
+        nn.Dropout(),
+        nn.Linear(output_size, l3),
+        nn.ReLU(inplace=True),
+        nn.Dropout(),
+        nn.Linear(l3, l2),
+        nn.ReLU(inplace=True),
+        nn.Dropout(),
+        nn.Linear(l2, l1),
+        nn.ReLU(inplace=True),
+        nn.Linear(l1, cls_num)
+    )
 
 
 class Net():
     model = None
-    m_url, m_type = '', ''
+    m_type = ''
+    m_name = ''
+    m_url = ''
     input_size = 224
-    output_size = 0
+    output_size = 512
     training = True
     deep_finetune = False
 
     def __init__(self, cls_num, m_ver='alexnet', saved_model_path='', deep_finetune=False):
-
         self.training = (saved_model_path == '')
         self.deep_finetune = deep_finetune
-        self.m_url, self.m_type, self.input_size, self.output_size = model_info(
+        self.m_name, self.m_type, self.input_size, self.m_url = model_info(
             m_ver)
+
+        if not hasattr(models, self.m_name):
+            print('Unsupported model.')
+            exit()
+
         self.model = eval('models.%s()' % m_ver)
+        self._set_outsize()
 
         if self.training:
             pre_model_path = download_model(self.m_url)
@@ -74,17 +94,47 @@ class Net():
             for parma in self.model.parameters():
                 parma.requires_grad = self.deep_finetune
 
-            set_classifier(self.model, self.output_size, self.m_type, cls_num)
+            self._set_classifier(cls_num)
             self.model.train()
 
         else:
-            set_classifier(self.model, self.output_size, self.m_type, cls_num)
+            self._set_classifier(cls_num)
             checkpoint = torch.load(saved_model_path, map_location='cpu')
             if torch.cuda.is_available():
                 checkpoint = torch.load(saved_model_path)
 
             self.model.load_state_dict(checkpoint, False)
             self.model.eval()
+
+    def _set_outsize(self):
+        for name, module in self.model.named_modules():
+            if str(name).__contains__('classifier') or str(name).__eq__('fc') or str(name).__contains__('head'):
+                if isinstance(module, torch.nn.Linear):
+                    self.output_size = module.in_features
+                    print(
+                        f"{name}(Linear): {self.output_size} -> {module.out_features}")
+                    break
+
+                if isinstance(module, torch.nn.Conv2d):
+                    self.output_size = module.in_channels
+                    print(
+                        f"{name}(Conv2d): {self.output_size} -> {module.out_channels}")
+                    break
+
+    def _set_classifier(self, cls_num):
+        if hasattr(self.model, 'classifier'):
+            self.model.classifier = Classifier(cls_num, self.output_size)
+            return
+
+        elif hasattr(self.model, 'fc'):
+            self.model.fc = Classifier(cls_num, self.output_size)
+            return
+
+        elif hasattr(self.model, 'head'):
+            self.model.head = Classifier(cls_num, self.output_size)
+            return
+
+        self.model.heads.head = Classifier(cls_num, self.output_size)
 
     def forward(self, x):
         if torch.cuda.is_available():

@@ -19,7 +19,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 parser = argparse.ArgumentParser(description='train')
-parser.add_argument('--model', type=str, default='squeezenet1_1')
+parser.add_argument('--model', type=str, default='swin_b')
 parser.add_argument('--fl', type=bool, default=True)
 parser.add_argument('--deepfinetune', type=bool, default=True)
 args = parser.parse_args()
