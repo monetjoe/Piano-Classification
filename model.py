@@ -21,12 +21,11 @@ def model_info(backbone_ver):
         split="IMAGENET1K_V1"
     )
     backbone = get_backbone(backbone_ver, backbone_list)
-    m_name = str(backbone['name'])
     m_type = str(backbone['type'])
     input_size = int(backbone['input_size'])
     m_url = str(backbone['url'])
 
-    return m_name, m_type, input_size, m_url
+    return m_type, input_size, m_url
 
 
 def download_model(pre_model_url):
@@ -77,9 +76,8 @@ def Classifier(cls_num: int, output_size: int, linear_output: bool):
 
 class Net():
     model = None
-    m_type = ''
-    m_name = ''
-    m_url = ''
+    m_type = 'alexnet'
+    m_url = 'https://download.pytorch.org/models/alexnet-owt-7be5be79.pth'
     input_size = 224
     output_size = 512
     training = True
@@ -88,10 +86,9 @@ class Net():
     def __init__(self, cls_num, m_ver='alexnet', saved_model_path='', deep_finetune=False):
         self.training = (saved_model_path == '')
         self.deep_finetune = deep_finetune
-        self.m_name, self.m_type, self.input_size, self.m_url = model_info(
-            m_ver)
+        self.m_type, self.input_size, self.m_url = model_info(m_ver)
 
-        if not hasattr(models, self.m_name):
+        if not hasattr(models, m_ver):
             print('Unsupported model.')
             exit()
 
@@ -136,7 +133,7 @@ class Net():
                         f"{name}(Conv2d): {self.output_size} -> {module.out_channels}")
                     return False
 
-        return True
+        return False
 
     def _set_classifier(self, cls_num, linear_output):
         if hasattr(self.model, 'classifier'):
@@ -167,7 +164,6 @@ class Net():
 
         if self.m_type == 'googlenet' and self.training:
             return self.model(x)[0]
-
         else:
             return self.model(x)
 
