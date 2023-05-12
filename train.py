@@ -5,12 +5,12 @@ import numpy as np
 import torch.nn as nn
 import torch.utils.data
 import torch.optim as optim
+from functools import partial
 from datetime import datetime
 from model import Net
 from datasets import load_dataset
 from torch.utils.data import DataLoader
 from torchvision.transforms import *
-# from data import prepare_data, classes
 from focalLoss import FocalLoss
 from utils import time_stamp, create_dir, toCUDA, results_dir
 from plot import save_acc, save_loss, save_confusion_matrix
@@ -19,16 +19,16 @@ import warnings
 warnings.filterwarnings("ignore")
 
 parser = argparse.ArgumentParser(description='train')
-parser.add_argument('--model', type=str, default='swin_b')
+parser.add_argument('--model', type=str, default='squeezenet1_1')
 parser.add_argument('--fl', type=bool, default=True)
 parser.add_argument('--deepfinetune', type=bool, default=True)
 args = parser.parse_args()
 
 
-def transform(example_batch):
+def transform(example_batch, input_size=300):
     compose = Compose([
-        Resize(300),
-        CenterCrop(300),
+        Resize(input_size),
+        CenterCrop(input_size),
         RandomAffine(5),
         ToTensor(),
         Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
@@ -38,7 +38,7 @@ def transform(example_batch):
     return example_batch
 
 
-def prepare_data(batch_size=4, shuffle=True, num_workers=2):
+def prepare_data():
     print('Preparing data...')
     ds = load_dataset("george-chou/pianos_mel")
     classes = ds['test'].features['label'].names
@@ -47,18 +47,27 @@ def prepare_data(batch_size=4, shuffle=True, num_workers=2):
         for item in ds['train']:
             num_samples_in_each_category[classes[item['label']]] += 1
 
-    trainset = ds['train'].with_transform(transform)
-    validset = ds['validation'].with_transform(transform)
-    testset = ds['test'].with_transform(transform)
+    print('Data prepared.')
+    return ds, classes, list(num_samples_in_each_category.values())
+
+
+def load_data(ds, input_size, batch_size=4, shuffle=True, num_workers=2):
+    print('Loadeding data...')
+    trainset = ds['train'].with_transform(
+        partial(transform, input_size=input_size))
+    validset = ds['validation'].with_transform(
+        partial(transform, input_size=input_size))
+    testset = ds['test'].with_transform(
+        partial(transform, input_size=input_size))
     traLoader = DataLoader(trainset, batch_size=batch_size,
                            shuffle=shuffle, num_workers=num_workers)
     valLoader = DataLoader(validset, batch_size=batch_size,
                            shuffle=shuffle, num_workers=num_workers)
     tesLoader = DataLoader(testset, batch_size=batch_size,
                            shuffle=shuffle, num_workers=num_workers)
-    print('Data loaded.')
 
-    return traLoader, valLoader, tesLoader, classes, list(num_samples_in_each_category.values())
+    print('Data loaded.')
+    return traLoader, valLoader, tesLoader
 
 
 def eval_model_train(model, trainLoader, tra_acc_list):
@@ -174,11 +183,14 @@ def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
     tra_acc_list, val_acc_list, loss_list, lr_list = [], [], [], []
 
     # load data
-    trainLoader, validLoader, testLoader, classes, num_samples = prepare_data()
+    ds, classes, num_samples = prepare_data()
     cls_num = len(classes)
 
     # init model
     model = Net(cls_num, m_ver=backbone_ver, deep_finetune=args.deepfinetune)
+
+    input_size = model._get_insize()
+    traLoader, valLoader, tesLoader = load_data(ds, input_size)
 
     # optimizer and loss
     criterion = FocalLoss(num_samples) if args.fl else nn.CrossEntropyLoss()
@@ -206,7 +218,7 @@ def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
         print(f'{epoch_str:-^40s}')
         print(f'Learning rate: {lr_str}')
         running_loss = 0.0
-        for i, data in enumerate(trainLoader, 0):
+        for i, data in enumerate(traLoader, 0):
             # get the inputs
             inputs, labels = toCUDA(data['image']), toCUDA(data['label'])
             # zero the parameter gradients
@@ -227,15 +239,15 @@ def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
                 loss_list.append(running_loss / iteration)
             running_loss = 0.0
 
-        eval_model_train(model, trainLoader, tra_acc_list)
-        eval_model_valid(model, validLoader, val_acc_list)
+        eval_model_train(model, traLoader, tra_acc_list)
+        eval_model_valid(model, valLoader, val_acc_list)
         scheduler.step(loss.item())
 
     finish_time = datetime.now()
-    cls_report, cm = eval_model_test(model, testLoader, classes)
+    cls_report, cm = eval_model_test(model, tesLoader, classes)
     save_history(model, tra_acc_list, val_acc_list, loss_list,
                  lr_list, cls_report, cm, start_time, finish_time, classes)
 
 
 if __name__ == "__main__":
-    train(backbone_ver=args.model, epoch_num=40)
+    train(backbone_ver=args.model, epoch_num=10)

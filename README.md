@@ -28,40 +28,7 @@ Assign a backbone(take inception_v3 as an example) after `--model` to start trai
 python train.py --model inception_v3
 ```
 
-__Supported backbones__
-| Ver                | Type       |
-| :----------------- | :--------- |
-| alexnet            | AlexNet    |
-| vgg11              | VGG        |
-| vgg13              | VGG        |
-| vgg16              | VGG        |
-| vgg19              | VGG        |
-| vgg11_bn           | VGG        |
-| vgg13_bn           | VGG        |
-| vgg16_bn           | VGG        |
-| vgg19_bn           | VGG        |
-| resnet18           | ResNet     |
-| resnet34           | ResNet     |
-| resnet50           | ResNet     |
-| resnet101          | ResNet     |
-| resnet152          | ResNet     |
-| resnext50_32x4d    | ResNet     |
-| resnext101_32x8d   | ResNet     |
-| wide_resnet50_2    | ResNet     |
-| wide_resnet101_2   | ResNet     |
-| squeezenet1_0      | SqueezeNet |
-| squeezenet1_1      | SqueezeNet |
-| densenet121        | DenseNet   |
-| densenet169        | DenseNet   |
-| densenet201        | DenseNet   |
-| densenet161        | DenseNet   |
-| googlenet          | GoogleNet  |
-| inception_v3       | GoogleNet  |
-| shufflenet_v2_x0_5 | ShuffleNet |
-| shufflenet_v2_x1_0 | ShuffleNet |
-| mobilenet_v2       | MobileNet  |
-| mnasnet0_5         | MobileNet  |
-| mnasnet1_0         | MobileNet  |
+<a href="https://huggingface.co/datasets/george-chou/vi_backbones" target="_blank">Supported backbones</a>
 
 ### Plot results
 After finishing the training, use below command to plot latest results:
