@@ -18,12 +18,6 @@ from sklearn.metrics import classification_report, accuracy_score, confusion_mat
 import warnings
 warnings.filterwarnings("ignore")
 
-parser = argparse.ArgumentParser(description='train')
-parser.add_argument('--model', type=str, default='squeezenet1_1')
-parser.add_argument('--fl', type=bool, default=True)
-parser.add_argument('--deepfinetune', type=bool, default=True)
-args = parser.parse_args()
-
 
 def transform(example_batch, input_size=300):
     compose = Compose([
@@ -250,4 +244,10 @@ def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
 
 
 if __name__ == "__main__":
-    train(backbone_ver=args.model, epoch_num=10)
+    parser = argparse.ArgumentParser(description='train')
+    parser.add_argument('--model', type=str, default='squeezenet1')
+    parser.add_argument('--fl', type=bool, default=True)
+    parser.add_argument('--deepfinetune', type=bool, default=False)
+    args = parser.parse_args()
+
+    train(backbone_ver=args.model, epoch_num=40)
