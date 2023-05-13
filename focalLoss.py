@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
-# from data import calc_alpha
 
 
 def calc_alpha(sample_sizes, use_softmax=False):
@@ -42,7 +41,6 @@ class FocalLoss(nn.Module):
         class_mask = Variable(class_mask)
         ids = targets.view(-1, 1)
         class_mask.scatter_(1, ids.data, 1.)
-        # print(class_mask)
 
         if inputs.is_cuda and not self.alpha.is_cuda:
             self.alpha = self.alpha.cuda()
@@ -50,12 +48,8 @@ class FocalLoss(nn.Module):
         alpha = self.alpha[ids.data.view(-1)]
         probs = (P * class_mask).sum(1).view(-1, 1)
         log_p = probs.log()
-        # print('probs size= {}'.format(probs.size()))
-        # print(probs)
 
         batch_loss = -alpha * (torch.pow((1 - probs), self.gamma)) * log_p
-        # print('-----bacth_loss------')
-        # print(batch_loss)
 
         if self.size_average:
             loss = batch_loss.mean()

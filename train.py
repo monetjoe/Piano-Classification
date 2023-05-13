@@ -245,7 +245,7 @@ def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='train')
-    parser.add_argument('--model', type=str, default='squeezenet1')
+    parser.add_argument('--model', type=str, default='squeezenet1_1')
     parser.add_argument('--fl', type=bool, default=True)
     parser.add_argument('--deepfinetune', type=bool, default=False)
     args = parser.parse_args()

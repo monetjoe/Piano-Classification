@@ -1,7 +1,9 @@
 import os
+import wave
 import torch
-import argparse
 import librosa
+import argparse
+import contextlib
 import librosa.display
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,9 +11,17 @@ import torchvision.transforms as transforms
 from PIL import Image
 from model import Net
 from train import train
-from utils import time_stamp, create_dir, results_dir
+from datasets import load_dataset
 from plot import get_latest_log, valid_path
-from data import get_duration_wav, classes
+from utils import time_stamp, create_dir, results_dir
+
+
+def get_duration_wav(audio_path):
+    with contextlib.closing(wave.open(audio_path, 'r')) as f:
+        frames = f.getnframes()
+        rate = f.getframerate()
+        duration = frames / float(rate)
+    return round(duration, 3)   # One decimal place
 
 
 def embed(audio_path, input_size):
@@ -82,15 +92,16 @@ def get_saved_model(log_dir, history):
     return saved_model_path, m_ver
 
 
-def eval(tag='', log_dir=results_dir, history='', split_mode=False, cls_num=len(classes)):
-
+def eval(classes, tag='', log_dir=results_dir, history='', split_mode=False):
+    cls_num = len(classes)
     if not os.path.exists(tag):
         print('Target not found.')
         exit()
 
     saved_model_path, m_ver = get_saved_model(log_dir, history)
-    model = Net(m_ver, saved_model_path, cls_num=cls_num)
-    print('[' + m_ver + '] prediction result:')
+    model = Net(cls_num=cls_num, m_ver=m_ver,
+                saved_model_path=saved_model_path)
+    print(f'prediction result of [{tag}] on [{m_ver}]:')
 
     if split_mode:
         inputs = split_embed(tag, model.input_size, width=0.2)
@@ -122,7 +133,14 @@ def eval(tag='', log_dir=results_dir, history='', split_mode=False, cls_num=len(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='predict')
     parser.add_argument('--target', type=str, default='./test/KAWAI.wav')
-    parser.add_argument('--log', type=str, default='')
+    parser.add_argument('--log', type=str,
+                        default='squeezenet1_1__2023-05-12_23-54-04')
     args = parser.parse_args()
 
-    eval(tag=args.target, history=args.log, split_mode=True)
+    classes = ['PearlRiver', 'YoungChang', 'Steinway-T',
+               'Hsinghai', 'Kawai', 'Steinway', 'Kawai-G', 'Yamaha']
+    if classes is None:
+        ds = load_dataset("george-chou/pianos_mel")
+        classes = ds['test'].features['label'].names
+
+    eval(classes, tag=args.target, history=args.log, split_mode=True)

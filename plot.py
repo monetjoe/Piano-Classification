@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy import signal as ss
-# from data import create_dir, classes
+from datasets import load_dataset
 from utils import *
 
 plt.rcParams['font.sans-serif'] = 'Times New Roman'
@@ -195,7 +195,7 @@ def plot_all(labels_name, latest_log=''):
     plt.show()  # Plot latest log
 
 
-def save_all(latest_log=''):
+def save_all(labels_name, latest_log=''):
     if latest_log == '':
         latest_log, _ = get_latest_log(results_dir)
         latest_log = latest_log[1:]
@@ -205,7 +205,8 @@ def save_all(latest_log=''):
 
     save_acc(tra_acc_list, val_acc_list, results_dir + '/' + latest_log)
     save_loss(loss_list, results_dir + '/' + latest_log)
-    save_confusion_matrix(cm, results_dir + '/' + latest_log)
+    save_confusion_matrix(
+        cm, labels_name, save_path=results_dir + '/' + latest_log)
     print('Re-saved.')
 
 
@@ -214,4 +215,10 @@ if __name__ == "__main__":
     parser.add_argument('--log', type=str, default='')
     args = parser.parse_args()
     # Default will re-save latest log
-    save_all(args.log)
+    classes = ['PearlRiver', 'YoungChang', 'Steinway-T',
+               'Hsinghai', 'Kawai', 'Steinway', 'Kawai-G', 'Yamaha']
+    if classes is None:
+        ds = load_dataset("george-chou/pianos_mel")
+        classes = ds['test'].features['label'].names
+
+    save_all(labels_name=classes, latest_log=args.log)

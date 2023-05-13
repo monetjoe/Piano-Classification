@@ -118,19 +118,21 @@ class Net():
             self.model.load_state_dict(checkpoint, False)
             self.model.eval()
 
-    def _set_outsize(self):
+    def _set_outsize(self, debug_mode=False):
         for name, module in self.model.named_modules():
             if str(name).__contains__('classifier') or str(name).__eq__('fc') or str(name).__contains__('head'):
                 if isinstance(module, torch.nn.Linear):
                     self.output_size = module.in_features
-                    print(
-                        f"{name}(Linear): {self.output_size} -> {module.out_features}")
+                    if debug_mode:
+                        print(
+                            f"{name}(Linear): {self.output_size} -> {module.out_features}")
                     return True
 
                 if isinstance(module, torch.nn.Conv2d):
                     self.output_size = module.in_channels
-                    print(
-                        f"{name}(Conv2d): {self.output_size} -> {module.out_channels}")
+                    if debug_mode:
+                        print(
+                            f"{name}(Conv2d): {self.output_size} -> {module.out_channels}")
                     return False
 
         return False

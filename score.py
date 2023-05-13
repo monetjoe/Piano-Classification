@@ -1,6 +1,6 @@
 import torch
-import torch.nn.functional as F
-from eval import eval
+# import torch.nn.functional as F
+# from eval import eval
 
 
 if __name__ == "__main__":
@@ -9,18 +9,18 @@ if __name__ == "__main__":
     weight_treble = torch.Tensor([2.37, 2.97, 3.67, 3.2, 2.93, 4, 3.07])
     weight_avg = (weights_bass + weight_mid + weight_treble) / 3
 
-    output = eval(tag='./test/KAWAI.wav',
-                  history='alexnet__2022-06-23_09-16-15', split_mode=False, cls_num=7)
+    # output = eval(tag='./test/KAWAI.wav',
+    #               history='alexnet__2022-06-23_09-16-15', split_mode=False, cls_num=7)
 
-    if torch.cuda.is_available():
-        output = output.cuda()
-        weight_avg = weight_avg.cuda()
+    # if torch.cuda.is_available():
+    #     output = output.cuda()
+    #     weight_avg = weight_avg.cuda()
 
-    if output.size(0) == weight_avg.size(0):
-        softmax_output = F.softmax(output)
-        print(softmax_output.sum())
-        score = float((softmax_output * weight_avg).sum())
-        print('Score : ' + str(round(score, 2)))
+    # if output.size(0) == weight_avg.size(0):
+    #     softmax_output = F.softmax(output)
+    #     print(softmax_output.sum())
+    #     score = float((softmax_output * weight_avg).sum())
+    #     print('Score : ' + str(round(score, 2)))
 
-    else:
-        print('Class dimension mismatched, unable to score.')
+    # else:
+    #     print('Class dimension mismatched, unable to score.')
