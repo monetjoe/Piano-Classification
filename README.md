@@ -7,8 +7,8 @@ Classify piano sound quality by fine-tuned pre-trained CNN models.
 
 ## Requirements
 ```
-echo y | conda create -n pianocls python=3.9 pytorch==1.12.1 torchvision==0.13.1 torchaudio==0.12.1 cudatoolkit=11.3.1
-conda activate pianocls
+conda create -n cnn --yes --file conda.txt
+conda activate cnn
 pip install -r requirements.txt
 ```
 
