@@ -22,9 +22,9 @@ cd Piano-Classification
 ```
 
 ### Train
-Assign a backbone(take inception_v3 as an example) after `--model` to start training:
+Assign a backbone(take squeezenet1_1 as an example) after `--model` to start training:
 ```
-python train.py --model inception_v3
+python train.py --model squeezenet1_1
 ```
 
 <a href="https://huggingface.co/datasets/george-chou/vi_backbones" target="_blank">Supported backbones</a>

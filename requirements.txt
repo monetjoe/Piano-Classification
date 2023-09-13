@@ -6,3 +6,4 @@ tqdm
 autopep8
 datasets
 pillow==9.4.0
+bs4
