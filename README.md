@@ -45,14 +45,18 @@ python eval.py --target ./test/KAWAI.wav
 A demo result of AlexNet fine-tuning:
 |              Index               |                                                      Plot                                                      |
 | :------------------------------: | :------------------------------------------------------------------------------------------------------------: |
-|            Loss curve            | ![loss](https://user-images.githubusercontent.com/20459298/233117067-380e9921-3b6d-4542-a4a7-0ba92bb95534.png) |
-| Training and validation accuracy | ![acc](https://user-images.githubusercontent.com/20459298/233117103-231c8555-1b95-49e1-938c-88eb5494d542.png)  |
-|         Confusion matrix         | ![mat](https://user-images.githubusercontent.com/20459298/233117128-d6033719-a104-4830-95c1-0038cf0cc954.png)  |
+|            Loss curve            | [loss.pdf](https://github.com/george-chou/Piano-Classification/files/12640187/loss.pdf)
+ |
+| Training and validation accuracy | [acc.pdf](https://github.com/george-chou/Piano-Classification/files/12640186/acc.pdf)
+  |
+|         Confusion matrix         | [mat.pdf](https://github.com/george-chou/Piano-Classification/files/12640188/mat.pdf)
+ |
 
 ## Cite
 ```
 @article{CSMT2023HEPSQ,
-  title={A Holistic Evaluation of Piano Sound Quality},
+  title={A Holistic Evaluation of Piano Sound Quality},[acc.pdf](https://github.com/george-chou/Piano-Classification/files/12640185/acc.pdf)
+
   author={Monan Zhou, Shangda Wu, Shaohua Ji, Zijin Li, Wei Li},
   year={2023}
 }
