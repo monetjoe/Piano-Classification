@@ -81,11 +81,11 @@ class Net():
     input_size = 224
     output_size = 512
     training = True
-    deep_finetune = False
+    full_finetune = False
 
-    def __init__(self, cls_num, m_ver='alexnet', saved_model_path='', deep_finetune=False):
+    def __init__(self, cls_num, m_ver='alexnet', saved_model_path='', full_finetune=False):
         self.training = (saved_model_path == '')
-        self.deep_finetune = deep_finetune
+        self.full_finetune = full_finetune
         self.m_type, self.input_size, self.m_url = model_info(m_ver)
 
         if not hasattr(models, m_ver):
@@ -104,7 +104,7 @@ class Net():
             self.model.load_state_dict(checkpoint, False)
 
             for parma in self.model.parameters():
-                parma.requires_grad = self.deep_finetune
+                parma.requires_grad = self.full_finetune
 
             self._set_classifier(cls_num, linear_output)
             self.model.train()
@@ -170,7 +170,7 @@ class Net():
             return self.model(x)
 
     def parameters(self):
-        if self.deep_finetune:
+        if self.full_finetune:
             return self.model.parameters()
 
         if hasattr(self.model, 'classifier'):

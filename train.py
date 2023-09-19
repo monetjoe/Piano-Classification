@@ -117,7 +117,7 @@ def save_log(start_time, finish_time, cls_report, cm, log_dir, classes):
     log_finish_time = 'Finish time  : ' + time_stamp(finish_time)
     log_time_cost = 'Time cost    : ' + \
         str((finish_time - start_time).seconds) + 's'
-    log_deepfinetune = 'DeepFinetune : ' + str(args.deepfinetune)
+    log_fullfinetune = 'FullFinetune : ' + str(args.fullfinetune)
     log_focal_loss = 'Focal loss   : ' + str(args.fl)
 
     with open(log_dir + '/result.log', 'w', encoding='utf-8') as f:
@@ -126,7 +126,7 @@ def save_log(start_time, finish_time, cls_report, cm, log_dir, classes):
         f.write(log_start_time + '\n')
         f.write(log_finish_time + '\n')
         f.write(log_time_cost + '\n')
-        f.write(log_deepfinetune + '\n')
+        f.write(log_fullfinetune + '\n')
         f.write(log_focal_loss + '\n')
     f.close()
 
@@ -141,7 +141,7 @@ def save_log(start_time, finish_time, cls_report, cm, log_dir, classes):
     print(log_start_time)
     print(log_finish_time)
     print(log_time_cost)
-    print(log_deepfinetune)
+    print(log_fullfinetune)
     print(log_focal_loss)
 
 
@@ -181,7 +181,7 @@ def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
     cls_num = len(classes)
 
     # init model
-    model = Net(cls_num, m_ver=backbone_ver, deep_finetune=args.deepfinetune)
+    model = Net(cls_num, m_ver=backbone_ver, full_finetune=args.fullfinetune)
 
     input_size = model._get_insize()
     traLoader, valLoader, tesLoader = load_data(ds, input_size)
@@ -247,7 +247,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='train')
     parser.add_argument('--model', type=str, default='squeezenet1_1')
     parser.add_argument('--fl', type=bool, default=True)
-    parser.add_argument('--deepfinetune', type=bool, default=True)
+    parser.add_argument('--fullfinetune', type=bool, default=True)
     args = parser.parse_args()
 
     train(backbone_ver=args.model, epoch_num=40)
