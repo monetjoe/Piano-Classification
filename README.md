@@ -52,6 +52,8 @@ A demo result of AlexNet fine-tuning:
 @article{CSMT2023HEPSQ,
   title={A Holistic Evaluation of Piano Sound Quality},
   author={Monan Zhou, Shangda Wu, Shaohua Ji, Zijin Li, Wei Li*},
-  year={2023}
+  journal={Springer},
+  year={2023},
+  url={https://github.com/george-chou/Piano-Classification}
 }
 ```

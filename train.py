@@ -117,7 +117,7 @@ def save_log(start_time, finish_time, cls_report, cm, log_dir, classes):
     log_finish_time = 'Finish time  : ' + time_stamp(finish_time)
     log_time_cost = 'Time cost    : ' + \
         str((finish_time - start_time).seconds) + 's'
-    log_fullfinetune = 'FullFinetune : ' + str(args.fullfinetune)
+    log_fullfinetune = 'Full finetune : ' + str(args.fullfinetune)
     log_focal_loss = 'Focal loss   : ' + str(args.fl)
 
     with open(log_dir + '/result.log', 'w', encoding='utf-8') as f:
