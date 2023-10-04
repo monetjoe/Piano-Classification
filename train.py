@@ -34,7 +34,7 @@ def transform(example_batch, input_size=300):
 
 def prepare_data():
     print('Preparing data...')
-    ds = load_dataset("MuGeminorum/pianos_mel")
+    ds = load_dataset("CCOM/pianos_mel")
     classes = ds['test'].features['label'].names
     if args.fl:
         num_samples_in_each_category = {k: 0 for k in classes}
