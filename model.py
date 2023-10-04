@@ -17,7 +17,7 @@ def get_backbone(ver, backbone_list):
 
 def model_info(backbone_ver):
     backbone_list = load_dataset(
-        path="george-chou/vi_backbones",
+        path="MuGeminorum/vi_backbones",
         split="IMAGENET1K_V1"
     )
     backbone = get_backbone(backbone_ver, backbone_list)
