@@ -117,7 +117,7 @@ def save_log(start_time, finish_time, cls_report, cm, log_dir, classes):
     log_finish_time = 'Finish time  : ' + time_stamp(finish_time)
     log_time_cost = 'Time cost    : ' + \
         str((finish_time - start_time).seconds) + 's'
-    log_fullfinetune = 'Full finetune : ' + str(args.fullfinetune)
+    log_fullfinetune = 'Full finetune: ' + str(args.fullfinetune)
     log_focal_loss = 'Focal loss   : ' + str(args.fl)
 
     with open(log_dir + '/result.log', 'w', encoding='utf-8') as f:
@@ -182,7 +182,6 @@ def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
 
     # init model
     model = Net(cls_num, m_ver=backbone_ver, full_finetune=args.fullfinetune)
-
     input_size = model._get_insize()
     traLoader, valLoader, tesLoader = load_data(ds, input_size)
 
@@ -191,7 +190,8 @@ def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
     optimizer = optim.SGD(model.parameters(), lr, momentum=0.9)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode='min', factor=0.1, patience=5, verbose=True,
-        threshold=lr, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-08)
+        threshold=lr, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-08
+    )
 
     # gpu
     if torch.cuda.is_available():
@@ -245,7 +245,7 @@ def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='train')
-    parser.add_argument('--model', type=str, default='squeezenet1_1')
+    parser.add_argument('--model', type=str, default='mobilenet_v2')
     parser.add_argument('--fl', type=bool, default=True)
     parser.add_argument('--fullfinetune', type=bool, default=True)
     args = parser.parse_args()

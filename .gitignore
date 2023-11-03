@@ -7,3 +7,4 @@ test/*
 .vscode/*
 debug.log
 results/*
+test.py

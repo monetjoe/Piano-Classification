@@ -19,7 +19,7 @@ def url_download(url: str, fname: str, max_retries=3):
     retry_count = 0
     while retry_count < max_retries:
         try:
-            print("Downloading: {url}")
+            print(f"Downloading: {url}")
             resp = requests.get(url, stream=True)
             # Check the response status code (raise an exception if it's not in the range 200-299)
             resp.raise_for_status()
