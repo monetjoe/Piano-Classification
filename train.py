@@ -41,8 +41,12 @@ def prepare_data():
         for item in ds['train']:
             num_samples_in_each_category[classes[item['label']]] += 1
 
-    print('Data prepared.')
-    return ds, classes, list(num_samples_in_each_category.values())
+        print('Data prepared.')
+        return ds, classes, list(num_samples_in_each_category.values())
+
+    else:
+        print('Data prepared.')
+        return ds, classes, []
 
 
 def load_data(ds, input_size, batch_size=4, shuffle=True, num_workers=2):
