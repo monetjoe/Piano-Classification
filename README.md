@@ -40,20 +40,21 @@ python eval.py --target ./test/KAWAI.wav
 ```
 
 ## Results
-A demo result of AlexNet fine-tuning:
-|              Index               |                                                       Plot                                                        |
-| :------------------------------: | :---------------------------------------------------------------------------------------------------------------: |
+A demo result of SqueezeNet fine-tuning:
+|              Index               |                                                      Plot                                                       |
+| :------------------------------: | :-------------------------------------------------------------------------------------------------------------: |
 |            Loss curve            | ![loss](https://github.com/monet-joe/Piano-Classification/assets/20459298/ebe0a604-3eca-49f2-88a5-fd8b0062a135) |
 | Training and validation accuracy | ![acc](https://github.com/monet-joe/Piano-Classification/assets/20459298/cb0b5d3f-ac57-4189-99d3-c5b2fbd608ac)  |
 |         Confusion matrix         | ![mat](https://github.com/monet-joe/Piano-Classification/assets/20459298/f3ffb499-ff81-4161-b139-ef348a1896ee)  |
 
 ## Cite
 ```
-@article{CSMT2023HEPSQ,
-  title={A Holistic Evaluation of Piano Sound Quality},
-  author={Monan Zhou, Shangda Wu, Shaohua Ji, Zijin Li, Wei Li*},
-  journal={Springer},
-  year={2023},
-  url={https://github.com/monet-joe/Piano-Classification}
+@misc{zhou2023holistic,
+      title={A Holistic Evaluation of Piano Sound Quality}, 
+      author={Monan Zhou and Shangda Wu and Shaohua Ji and Zijin Li and Wei Li},
+      year={2023},
+      eprint={2310.04722},
+      archivePrefix={arXiv},
+      primaryClass={cs.SD}
 }
 ```
