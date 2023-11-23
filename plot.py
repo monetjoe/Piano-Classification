@@ -218,7 +218,7 @@ if __name__ == "__main__":
     classes = ['PearlRiver', 'YoungChang', 'Steinway-T',
                'Hsinghai', 'Kawai', 'Steinway', 'Kawai-G', 'Yamaha']
     if classes is None:
-        ds = load_dataset("CCOM/pianos_mel")
+        ds = load_dataset("monet-joe/pianos_mel")
         classes = ds['test'].features['label'].names
 
     save_all(labels_name=classes, latest_log=args.log)
