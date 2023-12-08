@@ -18,7 +18,7 @@ def get_backbone(ver, backbone_list):
 def model_info(backbone_ver):
     backbone_list = load_dataset(
         path="monet-joe/cv_backbones",
-        split="IMAGENET1K_V2"
+        split="IMAGENET1K_V1"
     )
     backbone = get_backbone(backbone_ver, backbone_list)
     m_type = str(backbone['type'])
@@ -76,14 +76,14 @@ def Classifier(cls_num: int, output_size: int, linear_output: bool):
 
 class Net():
     model = None
-    m_type = 'alexnet'
-    m_url = 'https://download.pytorch.org/models/alexnet-owt-7be5be79.pth'
+    m_type = 'squeezenet1_1'
+    m_url = 'https://download.pytorch.org/models/squeezenet1_1-b8a52dc0.pth'
     input_size = 224
     output_size = 512
     training = True
     full_finetune = False
 
-    def __init__(self, cls_num, m_ver='alexnet', saved_model_path='', full_finetune=False):
+    def __init__(self, cls_num, m_ver='squeezenet1_1', saved_model_path='', full_finetune=False):
         self.training = (saved_model_path == '')
         self.full_finetune = full_finetune
         self.m_type, self.input_size, self.m_url = model_info(m_ver)
