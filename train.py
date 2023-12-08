@@ -27,14 +27,14 @@ def transform(example_batch, input_size=300):
         ToTensor(),
         Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
-    inputs = [compose(x.convert('RGB')) for x in example_batch["image"]]
-    example_batch["image"] = inputs
+    inputs = [compose(x.convert('RGB')) for x in example_batch['mel']]
+    example_batch['mel'] = inputs
     return example_batch
 
 
 def prepare_data():
     print('Preparing data...')
-    ds = load_dataset("monet-joe/pianos_mel")
+    ds = load_dataset("ccmusic-database/pianos")
     classes = ds['test'].features['label'].names
     if args.fl:
         num_samples_in_each_category = {k: 0 for k in classes}
@@ -72,7 +72,7 @@ def eval_model_train(model, trainLoader, tra_acc_list):
     y_true, y_pred = [], []
     with torch.no_grad():
         for data in trainLoader:
-            inputs, labels = toCUDA(data['image']), toCUDA(data['label'])
+            inputs, labels = toCUDA(data['mel']), toCUDA(data['label'])
             outputs = model.forward(inputs)
             predicted = torch.max(outputs.data, 1)[1]
             y_true.extend(labels.tolist())
@@ -87,7 +87,7 @@ def eval_model_valid(model, validationLoader, val_acc_list):
     y_true, y_pred = [], []
     with torch.no_grad():
         for data in validationLoader:
-            inputs, labels = toCUDA(data['image']), toCUDA(data['label'])
+            inputs, labels = toCUDA(data['mel']), toCUDA(data['label'])
             outputs = model.forward(inputs)
             predicted = torch.max(outputs.data, 1)[1]
             y_true.extend(labels.tolist())
@@ -102,7 +102,7 @@ def eval_model_test(model, testLoader, classes):
     y_true, y_pred = [], []
     with torch.no_grad():
         for data in testLoader:
-            inputs, labels = toCUDA(data['image']), toCUDA(data['label'])
+            inputs, labels = toCUDA(data['mel']), toCUDA(data['label'])
             outputs = model.forward(inputs)
             predicted = torch.max(outputs.data, 1)[1]
             y_true.extend(labels.tolist())
@@ -176,7 +176,7 @@ def save_history(model, tra_acc_list, val_acc_list, loss_list, lr_list, cls_repo
     save_log(start_time, finish_time, cls_report, cm, log_dir, classes)
 
 
-def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
+def train(backbone_ver='squeezenet1_1', epoch_num=40, iteration=10, lr=0.001):
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     tra_acc_list, val_acc_list, loss_list, lr_list = [], [], [], []
 
@@ -218,7 +218,7 @@ def train(backbone_ver='alexnet', epoch_num=40, iteration=10, lr=0.001):
         running_loss = 0.0
         for i, data in enumerate(traLoader, 0):
             # get the inputs
-            inputs, labels = toCUDA(data['image']), toCUDA(data['label'])
+            inputs, labels = toCUDA(data['mel']), toCUDA(data['label'])
             # zero the parameter gradients
             optimizer.zero_grad()
 

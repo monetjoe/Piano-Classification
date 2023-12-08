@@ -8,3 +8,4 @@ test/*
 debug.log
 results/*
 test.py
+output/*
