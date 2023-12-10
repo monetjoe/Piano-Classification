@@ -41,11 +41,11 @@ python eval.py --target ./test/KAWAI.wav
 
 ## Results
 A demo result of SqueezeNet fine-tuning:
-|              Index               |                                                      Plot                                                       |
-| :------------------------------: | :-------------------------------------------------------------------------------------------------------------: |
-|            Loss curve            | ![loss](https://github.com/monet-joe/Piano-Classification/assets/20459298/ebe0a604-3eca-49f2-88a5-fd8b0062a135) |
-| Training and validation accuracy | ![acc](https://github.com/monet-joe/Piano-Classification/assets/20459298/cb0b5d3f-ac57-4189-99d3-c5b2fbd608ac)  |
-|         Confusion matrix         | ![mat](https://github.com/monet-joe/Piano-Classification/assets/20459298/f3ffb499-ff81-4161-b139-ef348a1896ee)  |
+|             Results              |                                                      Plots                                                       |
+| :------------------------------: | :--------------------------------------------------------------------------------------------------------------: |
+|            Loss curve            | ![image](https://github.com/monet-joe/Piano-Classification/assets/20459298/8e80bb9e-60f9-40e0-a6a5-ad491f33074a) |
+| Training and validation accuracy | ![image](https://github.com/monet-joe/Piano-Classification/assets/20459298/10dbfa66-cc8a-40be-a181-2e029a6064be) |
+|         Confusion matrix         | ![image](https://github.com/monet-joe/Piano-Classification/assets/20459298/d925dc8d-952e-4919-8838-a6bc2e621f93) |
 
 ## Cite
 ```
