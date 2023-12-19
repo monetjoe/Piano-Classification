@@ -2,6 +2,7 @@ import os
 import torch
 import torch.nn as nn
 import torchvision.models as models
+from modelscope.msdatasets import MsDataset
 from datasets import load_dataset
 from utils import url_download, create_dir, model_dir
 
@@ -16,10 +17,18 @@ def get_backbone(ver, backbone_list):
 
 
 def model_info(backbone_ver):
-    backbone_list = load_dataset(
-        path="monet-joe/cv_backbones",
-        split="IMAGENET1K_V1"
-    )
+    try:
+        backbone_list = load_dataset(
+            path="monet-joe/cv_backbones",
+            split="IMAGENET1K_V1"
+        )
+    except ConnectionError:
+        backbone_list = MsDataset.load(
+            'monetjoe/cv_backbones',
+            subset_name='ImageNet1k_v1',
+            split='train'
+        )
+
     backbone = get_backbone(backbone_ver, backbone_list)
     m_type = str(backbone['type'])
     input_size = int(backbone['input_size'])
