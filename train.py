@@ -9,13 +9,17 @@ from functools import partial
 from datetime import datetime
 from model import Net
 from datasets import load_dataset
+from modelscope.msdatasets import MsDataset
 from torch.utils.data import DataLoader
 from torchvision.transforms import *
 from focalLoss import FocalLoss
 from utils import time_stamp, create_dir, toCUDA, results_dir
 from plot import save_acc, save_loss, save_confusion_matrix
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
+import logging
 import warnings
+modelscope_logger = logging.getLogger("modelscope")
+modelscope_logger.setLevel(logging.WARNING)
 warnings.filterwarnings("ignore")
 
 
@@ -34,29 +38,47 @@ def transform(example_batch, input_size=300):
 
 def prepare_data():
     print('Preparing data...')
-    ds = load_dataset("ccmusic-database/pianos")
-    classes = ds['test'].features['label'].names
+    try:
+        ds = load_dataset("ccmusic-database/pianos")
+        classes = ds['test'].features['label'].names
+        use_hf = True
+
+    except ConnectionError:
+        ds = MsDataset.load('ccmusic/pianos', subset_name='default')
+        classes = ds['test']._hf_ds.features['label'].names
+        use_hf = False
+
     if args.fl:
         num_samples_in_each_category = {k: 0 for k in classes}
         for item in ds['train']:
             num_samples_in_each_category[classes[item['label']]] += 1
 
         print('Data prepared.')
-        return ds, classes, list(num_samples_in_each_category.values())
+        return ds, classes, list(num_samples_in_each_category.values()), use_hf
 
     else:
         print('Data prepared.')
-        return ds, classes, []
+        return ds, classes, [], use_hf
 
 
-def load_data(ds, input_size, batch_size=4, shuffle=True, num_workers=2):
+def load_data(ds, input_size, use_hf, batch_size=4, shuffle=True, num_workers=2):
     print('Loadeding data...')
-    trainset = ds['train'].with_transform(
-        partial(transform, input_size=input_size))
-    validset = ds['validation'].with_transform(
-        partial(transform, input_size=input_size))
-    testset = ds['test'].with_transform(
-        partial(transform, input_size=input_size))
+    if use_hf:
+        trainset = ds['train'].with_transform(
+            partial(transform, input_size=input_size))
+        validset = ds['validation'].with_transform(
+            partial(transform, input_size=input_size))
+        testset = ds['test'].with_transform(
+            partial(transform, input_size=input_size))
+
+    else:
+        trainset = ds['train']._hf_ds.with_transform(
+            partial(transform, input_size=input_size))
+        validset = ds['validation']._hf_ds.with_transform(
+            partial(transform, input_size=input_size))
+        testset = ds['test']._hf_ds.with_transform(
+            partial(transform, input_size=input_size))
+
     traLoader = DataLoader(trainset, batch_size=batch_size,
                            shuffle=shuffle, num_workers=num_workers)
     valLoader = DataLoader(validset, batch_size=batch_size,
@@ -181,13 +203,13 @@ def train(backbone_ver='squeezenet1_1', epoch_num=40, iteration=10, lr=0.001):
     tra_acc_list, val_acc_list, loss_list, lr_list = [], [], [], []
 
     # load data
-    ds, classes, num_samples = prepare_data()
+    ds, classes, num_samples, use_hf = prepare_data()
     cls_num = len(classes)
 
     # init model
     model = Net(cls_num, m_ver=backbone_ver, full_finetune=args.fullfinetune)
     input_size = model._get_insize()
-    traLoader, valLoader, tesLoader = load_data(ds, input_size)
+    traLoader, valLoader, tesLoader = load_data(ds, input_size, use_hf)
 
     # optimizer and loss
     criterion = FocalLoss(num_samples) if args.fl else nn.CrossEntropyLoss()
