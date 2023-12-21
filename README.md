@@ -5,7 +5,7 @@
 Classify piano sound quality by fine-tuned pre-trained CNN models.
 
 ## Requirements
-```
+```bash
 conda create -n cnn --yes --file conda.txt
 conda activate cnn
 pip install -r requirements.txt
@@ -13,14 +13,14 @@ pip install -r requirements.txt
 
 ## Usage
 ### Code download
-```
+```bash
 git clone https://github.com/monet-joe/Piano-Classification.git
 cd Piano-Classification
 ```
 
 ### Train
 Assign a backbone(take squeezenet1_1 as an example) after `--model` to start training:
-```
+```bash
 python train.py --model squeezenet1_1 --fullfinetune True
 ```
 `--fullfinetune True` means full finetune, `False` means linear probing
@@ -29,13 +29,13 @@ python train.py --model squeezenet1_1 --fullfinetune True
 
 ### Plot results
 After finishing the training, use below command to plot latest results:
-```
+```bash
 python plot.py
 ```
 
 ### Predict
 Use below command to predict an audio target by latest saved model:
-```
+```bash
 python eval.py --target ./test/KAWAI.wav
 ```
 
@@ -48,7 +48,7 @@ A demo result of SqueezeNet fine-tuning:
 |         Confusion matrix         | ![image](https://github.com/monet-joe/Piano-Classification/assets/20459298/d925dc8d-952e-4919-8838-a6bc2e621f93) |
 
 ## Cite
-```
+```bash
 @misc{zhou2023holistic,
       title={A Holistic Evaluation of Piano Sound Quality}, 
       author={Monan Zhou and Shangda Wu and Shaohua Ji and Zijin Li and Wei Li},
