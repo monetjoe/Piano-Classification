@@ -274,4 +274,4 @@ if __name__ == "__main__":
     parser.add_argument('--fullfinetune', type=bool, default=True)
     args = parser.parse_args()
 
-    train(backbone_ver=args.model, epoch_num=1)
+    train(backbone_ver=args.model, epoch_num=40)

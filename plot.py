@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy import signal as ss
-from datasets import load_dataset
 from utils import *
 
 plt.rcParams['font.sans-serif'] = 'Times New Roman'
@@ -143,8 +142,11 @@ def load_history(log_dir=results_dir, latest_log=''):
     val_acc_list = acc_list['val_acc_list'].tolist()
     loss_list = pd.read_csv(latest_loss)['loss_list'].tolist()
 
-    cm = np.loadtxt(open(log_dir + latest_log + "/mat.csv", "rb"),
-                    delimiter=",", skiprows=0)
+    cm = np.loadtxt(
+        open(log_dir + latest_log + "/mat.csv", "rb"),
+        delimiter=",",
+        skiprows=0
+    )
 
     return tra_acc_list, val_acc_list, loss_list, cm
 
@@ -185,7 +187,8 @@ def save_confusion_matrix(cm, labels_name, save_path, title='Confusion matrix'):
 
 def plot_all(labels_name, latest_log=''):
     tra_acc_list, val_acc_list, loss_list, cm = load_history(
-        latest_log=latest_log)
+        latest_log=latest_log
+    )
 
     plt.figure(figsize=(9, 7))
     plt.subplot(221)
@@ -218,10 +221,8 @@ if __name__ == "__main__":
     parser.add_argument('--log', type=str, default='')
     args = parser.parse_args()
     # Default will re-save latest log
-    classes = ['PearlRiver', 'YoungChang', 'Steinway-T',
-               'Hsinghai', 'Kawai', 'Steinway', 'Kawai-G', 'Yamaha']
-    if classes is None:
-        ds = load_dataset("ccmusic-database/pianos", split="test")
-        classes = ds['test'].features['label'].names
-
+    classes = [
+        'PearlRiver', 'YoungChang', 'Steinway-T', 'Hsinghai',
+        'Kawai', 'Steinway', 'Kawai-G', 'Yamaha'
+    ]
     save_all(labels_name=classes, latest_log=args.log)

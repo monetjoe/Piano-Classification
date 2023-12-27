@@ -38,7 +38,7 @@ def model_info(backbone_ver):
 
 
 def download_model(pre_model_url):
-    pre_model_path = model_dir + '/' + (pre_model_url.split('/')[-1])
+    pre_model_path = f"{model_dir }/{pre_model_url.split('/')[-1]}"
     create_dir(model_dir)
 
     if not os.path.exists(pre_model_path):
