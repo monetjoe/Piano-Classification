@@ -5,28 +5,24 @@ import numpy as np
 import torch.nn as nn
 import torch.utils.data
 import torch.optim as optim
+from model import Net
 from functools import partial
 from datetime import datetime
-from model import Net
-from datasets import load_dataset
-from modelscope.msdatasets import MsDataset
+from focaloss import FocalLoss
 from torch.utils.data import DataLoader
-from torchvision.transforms import *
-from focalLoss import FocalLoss
-from utils import time_stamp, create_dir, toCUDA, results_dir
-from plot import save_acc, save_loss, save_confusion_matrix
+from modelscope.msdatasets import MsDataset
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
-import logging
+from plot import save_acc, save_loss, save_confusion_matrix
+from datasets import load_dataset
+from torchvision.transforms import *
+from utils import *
 import warnings
-modelscope_logger = logging.getLogger("modelscope")
-modelscope_logger.setLevel(logging.WARNING)
 warnings.filterwarnings("ignore")
 
 
 def transform(example_batch, input_size=300):
     compose = Compose([
         Resize(input_size),
-        # CenterCrop(input_size),
         RandomAffine(5),
         ToTensor(),
         Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
@@ -101,7 +97,7 @@ def eval_model_train(model, trainLoader, tra_acc_list):
             y_pred.extend(predicted.tolist())
 
     acc = 100.0 * accuracy_score(y_true, y_pred)
-    print('Training acc   : ' + str(round(acc, 2)) + '%')
+    print(f'Training acc   : {str(round(acc, 2))}%')
     tra_acc_list.append(acc)
 
 
@@ -116,7 +112,7 @@ def eval_model_valid(model, validationLoader, val_acc_list):
             y_pred.extend(predicted.tolist())
 
     acc = 100.0 * accuracy_score(y_true, y_pred)
-    print('Validation acc : ' + str(round(acc, 2)) + '%')
+    print(f'Validation acc : {str(round(acc, 2))}%')
     val_acc_list.append(acc)
 
 
@@ -138,15 +134,14 @@ def eval_model_test(model, testLoader, classes):
 
 
 def save_log(start_time, finish_time, cls_report, cm, log_dir, classes):
-    log_backbone = 'Backbone     : ' + args.model
-    log_start_time = 'Start time   : ' + time_stamp(start_time)
-    log_finish_time = 'Finish time  : ' + time_stamp(finish_time)
-    log_time_cost = 'Time cost    : ' + \
-        str((finish_time - start_time).seconds) + 's'
-    log_fullfinetune = 'Full finetune: ' + str(args.fullfinetune)
-    log_focal_loss = 'Focal loss   : ' + str(args.fl)
+    log_backbone = f'Backbone     : {args.model}'
+    log_start_time = f'Start time   : {time_stamp(start_time)}'
+    log_finish_time = f'Finish time  : {time_stamp(finish_time)}'
+    log_time_cost = f'Time cost    : {str((finish_time - start_time).seconds)}s'
+    log_fullfinetune = f'Full finetune: {str(args.fullfinetune)}'
+    log_focal_loss = f'Focal loss   : {str(args.fl)}'
 
-    with open(log_dir + '/result.log', 'w', encoding='utf-8') as f:
+    with open(f'{log_dir}/result.log', 'w', encoding='utf-8') as f:
         f.write(cls_report + '\n')
         f.write(log_backbone + '\n')
         f.write(log_start_time + '\n')
@@ -157,7 +152,7 @@ def save_log(start_time, finish_time, cls_report, cm, log_dir, classes):
     f.close()
 
     # save confusion_matrix
-    np.savetxt(log_dir + '/mat.csv', cm, delimiter=',')
+    np.savetxt(f'{log_dir}/mat.csv', cm, delimiter=',')
     save_confusion_matrix(cm, classes, log_dir)
 
     print(cls_report)
@@ -173,24 +168,24 @@ def save_log(start_time, finish_time, cls_report, cm, log_dir, classes):
 
 def save_history(model, tra_acc_list, val_acc_list, loss_list, lr_list, cls_report, cm, start_time, finish_time, classes):
     create_dir(results_dir)
-    log_dir = results_dir + '/' + args.model + '__' + time_stamp()
+    log_dir = f'{results_dir}/{args.model}__{time_stamp()}'
     create_dir(log_dir)
 
     acc_len = len(tra_acc_list)
-    with open(log_dir + "/acc.csv", "w", newline='') as csvfile:
+    with open(f'{log_dir}/acc.csv', "w", newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(["tra_acc_list", "val_acc_list", "lr_list"])
         for i in range(acc_len):
             writer.writerow([tra_acc_list[i], val_acc_list[i], lr_list[i]])
 
     loss_len = len(loss_list)
-    with open(log_dir + "/loss.csv", "w", newline='') as csvfile:
+    with open(f'{log_dir}/loss.csv', "w", newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(["loss_list"])
         for i in range(loss_len):
             writer.writerow([loss_list[i]])
 
-    torch.save(model.state_dict(), log_dir + '/save.pt')
+    torch.save(model.state_dict(), f'{log_dir}/save.pt')
     print('Model saved.')
 
     save_acc(tra_acc_list, val_acc_list, log_dir)
@@ -230,8 +225,9 @@ def train(backbone_ver='squeezenet1_1', epoch_num=40, iteration=10, lr=0.001):
 
     # train process
     start_time = datetime.now()
-    print('Start training [' + args.model + '] at ' + time_stamp(start_time))
-    for epoch in range(epoch_num):  # loop over the dataset multiple times
+    print(f'Start training [{args.model}] at {time_stamp(start_time)}')
+    # loop over the dataset multiple times
+    for epoch in range(epoch_num):
         epoch_str = f' Epoch {epoch + 1}/{epoch_num} '
         lr_str = optimizer.param_groups[0]["lr"]
         lr_list.append(lr_str)
@@ -265,8 +261,10 @@ def train(backbone_ver='squeezenet1_1', epoch_num=40, iteration=10, lr=0.001):
 
     finish_time = datetime.now()
     cls_report, cm = eval_model_test(model, tesLoader, classes)
-    save_history(model, tra_acc_list, val_acc_list, loss_list,
-                 lr_list, cls_report, cm, start_time, finish_time, classes)
+    save_history(
+        model, tra_acc_list, val_acc_list, loss_list, lr_list,
+        cls_report, cm, start_time, finish_time, classes
+    )
 
 
 if __name__ == "__main__":
@@ -276,4 +274,4 @@ if __name__ == "__main__":
     parser.add_argument('--fullfinetune', type=bool, default=True)
     args = parser.parse_args()
 
-    train(backbone_ver=args.model, epoch_num=40)
+    train(backbone_ver=args.model, epoch_num=1)
