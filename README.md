@@ -1,6 +1,9 @@
 # Piano-Classification
 [![Python application](https://github.com/monet-joe/Piano-Classification/actions/workflows/python-app.yml/badge.svg?branch=main)](https://github.com/monet-joe/Piano-Classification/actions/workflows/python-app.yml)
 [![license](https://img.shields.io/github/license/monet-joe/Piano-Classification.svg)](https://github.com/monet-joe/Piano-Classification/blob/master/LICENSE)
+[![](https://img.shields.io/badge/HF-pianos-ffd21e.svg)](https://huggingface.co/spaces/ccmusic-database/pianos)
+[![](https://img.shields.io/badge/ModelScope-pianos-624aff.svg)](https://www.modelscope.cn/studios/ccmusic/pianos)
+[![](https://img.shields.io/badge/arxiv-2310.04722-b31b1b.svg)](https://arxiv.org/pdf/2310.04722.pdf)
 
 Classify piano sound quality by fine-tuned pre-trained CNN models.
 
@@ -31,12 +34,6 @@ python train.py --model squeezenet1_1 --fullfinetune True
 After finishing the training, use below command to plot latest results:
 ```bash
 python plot.py
-```
-
-### Predict
-Use below command to predict an audio target by latest saved model:
-```bash
-python eval.py --target ./test/KAWAI.wav
 ```
 
 ## Results
