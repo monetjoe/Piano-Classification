@@ -15,9 +15,9 @@ pip install -r requirements.txt
 ```
 
 ## Usage
-### Code download
+### Maintenance
 ```bash
-git clone https://github.com/monet-joe/Piano-Classification.git
+git clone git@gitee.com:MuGeminorum/Piano-Classification.git
 cd Piano-Classification
 ```
 
