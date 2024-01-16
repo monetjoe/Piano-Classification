@@ -9,3 +9,4 @@ debug.log
 results/*
 test.py
 output/*
+rename.sh
