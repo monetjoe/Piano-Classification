@@ -17,7 +17,7 @@ pip install -r requirements.txt
 ## Usage
 ### Maintenance
 ```bash
-git clone git@gitee.com:MuGeminorum/Piano-Classification.git
+git clone git@github.com:monet-joe/Piano-Classification.git
 cd Piano-Classification
 ```
 
@@ -45,7 +45,7 @@ A demo result of SqueezeNet fine-tuning:
 |         Confusion matrix         | ![image](https://github.com/monet-joe/Piano-Classification/assets/20459298/d925dc8d-952e-4919-8838-a6bc2e621f93) |
 
 ## Cite
-```bash
+```
 @misc{zhou2023holistic,
       title={A Holistic Evaluation of Piano Sound Quality}, 
       author={Monan Zhou and Shangda Wu and Shaohua Ji and Zijin Li and Wei Li},
