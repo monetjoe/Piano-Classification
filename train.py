@@ -297,7 +297,7 @@ def train(backbone_ver='squeezenet1_1', epoch_num=40, iteration=10, lr=0.001):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='train')
-    parser.add_argument('--model', type=str, default='inception_v3')
+    parser.add_argument('--model', type=str, default='squeezenet1_1')
     parser.add_argument('--fl', type=bool, default=True)
     parser.add_argument('--fullfinetune', type=bool, default=True)
     args = parser.parse_args()
