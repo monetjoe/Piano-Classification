@@ -5,5 +5,5 @@ pandas
 tqdm
 autopep8
 datasets
-pillow==10.0.1
+pillow==10.2
 bs4

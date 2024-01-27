@@ -57,32 +57,60 @@ def prepare_data():
         return ds, classes, [], use_hf
 
 
-def load_data(ds, input_size, use_hf, batch_size=4, shuffle=True, num_workers=2):
+def load_data(ds, input_size, use_hf, has_bn=False, batch_size=4, shuffle=True, num_workers=2):
     print('Loadeding data...')
-    if use_hf:
-        trainset = ds['train'].with_transform(
-            partial(transform, input_size=input_size))
-        validset = ds['validation'].with_transform(
-            partial(transform, input_size=input_size))
-        testset = ds['test'].with_transform(
-            partial(transform, input_size=input_size))
+    bs = batch_size
+    ds_train = ds['train']
+    ds_valid = ds['validation']
+    ds_test = ds['test']
 
-    else:
-        trainset = ds['train']._hf_ds.with_transform(
-            partial(transform, input_size=input_size))
-        validset = ds['validation']._hf_ds.with_transform(
-            partial(transform, input_size=input_size))
-        testset = ds['test']._hf_ds.with_transform(
-            partial(transform, input_size=input_size))
+    if not use_hf:
+        ds_train = ds_train._hf_ds
+        ds_valid = ds_valid._hf_ds
+        ds_test = ds_test._hf_ds
 
-    traLoader = DataLoader(trainset, batch_size=batch_size,
-                           shuffle=shuffle, num_workers=num_workers)
-    valLoader = DataLoader(validset, batch_size=batch_size,
-                           shuffle=shuffle, num_workers=num_workers)
-    tesLoader = DataLoader(testset, batch_size=batch_size,
-                           shuffle=shuffle, num_workers=num_workers)
+    if has_bn:
+        print('The model has bn layer')
+        if bs < 2:
+            print('Switch batch_size >= 2')
+            bs = 2
 
+    trainset = ds_train.with_transform(partial(
+        transform,
+        input_size=input_size
+    ))
+    validset = ds_valid.with_transform(partial(
+        transform,
+        input_size=input_size
+    ))
+    testset = ds_test.with_transform(partial(
+        transform,
+        input_size=input_size
+    ))
+
+    traLoader = DataLoader(
+        trainset,
+        batch_size=bs,
+        shuffle=shuffle,
+        num_workers=num_workers,
+        drop_last=has_bn
+    )
+    valLoader = DataLoader(
+        validset,
+        batch_size=bs,
+        shuffle=shuffle,
+        num_workers=num_workers,
+        drop_last=has_bn
+    )
+    tesLoader = DataLoader(
+        testset,
+        batch_size=bs,
+        shuffle=shuffle,
+        num_workers=num_workers,
+        drop_last=has_bn
+    )
     print('Data loaded.')
+
     return traLoader, valLoader, tesLoader
 
 
@@ -269,7 +297,7 @@ def train(backbone_ver='squeezenet1_1', epoch_num=40, iteration=10, lr=0.001):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='train')
-    parser.add_argument('--model', type=str, default='squeezenet1_1')
+    parser.add_argument('--model', type=str, default='inception_v3')
     parser.add_argument('--fl', type=bool, default=True)
     parser.add_argument('--fullfinetune', type=bool, default=True)
     args = parser.parse_args()
