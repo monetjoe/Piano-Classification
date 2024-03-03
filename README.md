@@ -31,7 +31,7 @@ python train.py --model squeezenet1_1 --fullfinetune True
 <a href="https://www.modelscope.cn/datasets/monetjoe/cv_backbones/dataPeview" target="_blank">Supported backbones</a>
 
 ### Plot results
-After finishing the training, use below command to plot latest results:
+After finishing the training, use the below command to plot the latest results:
 ```bash
 python plot.py
 ```
