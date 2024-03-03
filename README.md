@@ -38,7 +38,7 @@ python plot.py
 
 ## Results
 A demo result of SqueezeNet fine-tuning:
-|             Results              |                                                      Plots                                                   |
+|             Results              |                                                    Plots                                                     |
 | :------------------------------: | :----------------------------------------------------------------------------------------------------------: |
 |            Loss curve            | ![](https://www.modelscope.cn/api/v1/models/ccmusic/pianos/repo?Revision=master&FilePath=loss.jpg&View=true) |
 | Training and validation accuracy | ![](https://www.modelscope.cn/api/v1/models/ccmusic/pianos/repo?Revision=master&FilePath=acc.jpg&View=true)  |
@@ -46,12 +46,18 @@ A demo result of SqueezeNet fine-tuning:
 
 ## Cite
 ```
-@misc{zhou2023holistic,
-      title={A Holistic Evaluation of Piano Sound Quality}, 
-      author={Monan Zhou and Shangda Wu and Shaohua Ji and Zijin Li and Wei Li},
-      year={2023},
-      eprint={2310.04722},
-      archivePrefix={arXiv},
-      primaryClass={cs.SD}
+@inproceedings{DBLP:journals/corr/abs-2310-04722,
+  author    = {Monan Zhou and
+               Shangda Wu and
+               Shaohua Ji and
+               Zijin Li and
+               Wei Li},
+  title     = {A Holistic Evaluation of Piano Sound Quality},
+  booktitle = {Proceedings of the 10th Conference on Sound and Music Technology (CSMT)},
+  year      = {2023},
+  publisher = {Springer Singapore},
+  address   = {Singapore},
+  timestamp = {Fri, 20 Oct 2023 12:04:38 +0200},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 ```
