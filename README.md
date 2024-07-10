@@ -24,9 +24,10 @@ cd Piano-Classification
 ### Train
 Assign a backbone(take squeezenet1_1 as an example) after `--model` to start training:
 ```bash
-python train.py --model squeezenet1_1 --fullfinetune True
+python train.py --model squeezenet1_1 --fullfinetune True --fl True
 ```
-`--fullfinetune True` means full finetune, `False` means linear probing
+`--fullfinetune True` means full finetune, `False` means linear probing<br>
+`--fl True` means using focal loss
 
 #### Supported backbones
 <a href="https://huggingface.co/datasets/monetjoe/cv_backbones" target="_blank">Mirror 1</a><br>
