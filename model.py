@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torchvision.models as models
 from modelscope.msdatasets import MsDataset
-from utils import url_download, create_dir, model_dir
+from utils import url_download, create_dir, MODEL_DIR
 
 
 class FocalLoss(nn.CrossEntropyLoss):
@@ -25,7 +25,11 @@ class Net:
     full_finetune = False
 
     def __init__(
-        self, cls_num, m_ver="squeezenet1_1", saved_model_path="", full_finetune=False
+        self,
+        cls_num,
+        m_ver="squeezenet1_1",
+        saved_model_path="",
+        full_finetune=False,
     ):
         self.training = saved_model_path == ""
         self.full_finetune = full_finetune
@@ -40,9 +44,10 @@ class Net:
 
         if self.training:
             pre_model_path = self._download_model(self.m_url)
-            checkpoint = torch.load(pre_model_path, map_location="cpu")
             if torch.cuda.is_available():
                 checkpoint = torch.load(pre_model_path)
+            else:
+                checkpoint = torch.load(pre_model_path, map_location="cpu")
 
             self.model.load_state_dict(checkpoint, False)
 
@@ -83,8 +88,8 @@ class Net:
         return m_type, input_size, m_url
 
     def _download_model(self, pre_model_url):
-        pre_model_path = f"{model_dir }/{pre_model_url.split('/')[-1]}"
-        create_dir(model_dir)
+        pre_model_path = f"{MODEL_DIR }/{pre_model_url.split('/')[-1]}"
+        create_dir(MODEL_DIR)
 
         if not os.path.exists(pre_model_path):
             url_download(pre_model_url, pre_model_path)

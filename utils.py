@@ -1,17 +1,16 @@
 import os
-import time
 import torch
 import zipfile
 import requests
 from tqdm import tqdm
 
-results_dir = "./logs"
-model_dir = "./model"
+LOGS_DIR = "./logs"
+MODEL_DIR = "./model"
 
 
-def create_dir(dir):
-    if not os.path.exists(dir):
-        os.mkdir(dir)
+def create_dir(dir_path: str):
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
 
 
 def url_download(url: str, fname: str, max_retries=3):
@@ -68,13 +67,6 @@ def unzip_file(zip_src, dst_dir):
             fz.extract(file, dst_dir)
     else:
         print("This is not zip")
-
-
-def time_stamp(timestamp=None):
-    if timestamp != None:
-        return timestamp.strftime("%Y-%m-%d %H:%M:%S")
-
-    return time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime(time.time()))
 
 
 def toCUDA(x):

@@ -6,8 +6,8 @@ import numpy as np
 import torch.nn as nn
 import torch.utils.data
 import torch.optim as optim
-from model import Net, FocalLoss
 from datetime import datetime
+from model import Net, FocalLoss, models
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
 from plot import save_acc, save_loss, save_confusion_matrix
 from data import prepare_data, load_data
@@ -29,7 +29,13 @@ def eval_model_train(model, trainLoader, tra_acc_list: list):
     tra_acc_list.append(acc)
 
 
-def eval_model_valid(model, validationLoader, val_acc_list: list):
+def eval_model_valid(
+    model: nn.Module,
+    validationLoader,
+    val_acc_list: list,
+    log_dir: str,
+    best_acc: float,
+):
     y_true, y_pred = [], []
     with torch.no_grad():
         for data in tqdm(validationLoader, desc="Batch evaluation on validset..."):
@@ -43,11 +49,20 @@ def eval_model_valid(model, validationLoader, val_acc_list: list):
     print(f"\nValidation acc : {str(round(acc, 2))}%")
     val_acc_list.append(acc)
 
+    if acc > best_acc:
+        torch.save(model.state_dict(), f"{log_dir}/save.pt")
+        print("Model saved.")
+        return acc
 
-def eval_model_test(model, testLoader, classes):
+    else:
+        return best_acc
+
+
+def eval_model_test(log_dir: str, backbone_ver: str, testLoader, classes):
+    model = Net(len(classes), m_ver=backbone_ver, saved_model_path=f"{log_dir}/save.pt")
     y_true, y_pred = [], []
     with torch.no_grad():
-        for data in testLoader:
+        for data in tqdm(testLoader, desc="Batch evaluation on testset..."):
             inputs, labels = toCUDA(data["mel"]), toCUDA(data["label"])
             outputs: torch.Tensor = model.forward(inputs)
             predicted = torch.max(outputs.data, 1)[1]
@@ -60,19 +75,24 @@ def eval_model_test(model, testLoader, classes):
     return report, cm
 
 
-def save_log(start_time, finish_time, cls_report, cm, log_dir, classes):
+def save_log(
+    start_time: datetime,
+    finish_time: datetime,
+    cls_report,
+    cm,
+    log_dir,
+    classes,
+):
     logs = f"""
 Backbone     : {args.model}
-Start time   : {time_stamp(start_time)}"
-Finish time  : {time_stamp(finish_time)}"
-Time cost    : {str((finish_time - start_time).seconds)}s"
-Full finetune: {str(args.fullfinetune)}"
-Focal loss   : {str(args.fl)}"""
+Start time   : {start_time}"
+Finish time  : {finish_time}"
+Time cost    : {(finish_time - start_time).seconds}s"
+Full finetune: {args.fullfinetune}"
+Focal loss   : {args.fl}"""
 
     with open(f"{log_dir}/result.log", "w", encoding="utf-8") as f:
-        f.write(cls_report + "\n")
-        f.write(logs + "\n")
-    f.close()
+        f.write(cls_report + "\n" + logs + "\n")
 
     # save confusion_matrix
     np.savetxt(f"{log_dir}/mat.csv", cm, delimiter=",")
@@ -85,7 +105,7 @@ Focal loss   : {str(args.fl)}"""
 
 
 def save_history(
-    model,
+    log_dir,
     tra_acc_list,
     val_acc_list,
     loss_list,
@@ -96,10 +116,6 @@ def save_history(
     finish_time,
     classes,
 ):
-    create_dir(results_dir)
-    log_dir = f"{results_dir}/{args.model}__{time_stamp()}"
-    create_dir(log_dir)
-
     acc_len = len(tra_acc_list)
     with open(f"{log_dir}/acc.csv", "w", newline="") as csvfile:
         writer = csv.writer(csvfile)
@@ -113,9 +129,6 @@ def save_history(
         writer.writerow(["loss_list"])
         for i in range(loss_len):
             writer.writerow([loss_list[i]])
-
-    torch.save(model.state_dict(), f"{log_dir}/save.pt")
-    print("Model saved.")
 
     save_acc(tra_acc_list, val_acc_list, log_dir)
     save_loss(loss_list, log_dir)
@@ -162,7 +175,9 @@ def train(backbone_ver="squeezenet1_1", epoch_num=40, iteration=10, lr=0.001):
 
     # train process
     start_time = datetime.now()
-    print(f"Start training [{args.model}] at {time_stamp(start_time)}")
+    log_dir = f"{LOGS_DIR}/{args.model}__{start_time.strftime('%Y-%m-%d_%H-%M-%S')}"
+    create_dir(log_dir)
+    print(f"Start training {args.model} at {start_time}...")
     # loop over the dataset multiple times
     for epoch in range(epoch_num):
         epoch_str = f" Epoch {epoch + 1}/{epoch_num} "
@@ -171,6 +186,7 @@ def train(backbone_ver="squeezenet1_1", epoch_num=40, iteration=10, lr=0.001):
         print(f"{epoch_str:-^40s}")
         print(f"Learning rate: {lr_str}")
         running_loss = 0.0
+        best_eval_acc = 0.0
         with tqdm(total=len(traLoader), unit="batch") as pbar:
             for i, data in enumerate(traLoader, 0):
                 # get the inputs
@@ -201,13 +217,19 @@ def train(backbone_ver="squeezenet1_1", epoch_num=40, iteration=10, lr=0.001):
                 pbar.update(1)
 
             eval_model_train(model, traLoader, tra_acc_list)
-            eval_model_valid(model, valLoader, val_acc_list)
+            best_eval_acc = eval_model_valid(
+                model,
+                valLoader,
+                val_acc_list,
+                log_dir,
+                best_eval_acc,
+            )
             scheduler.step(loss.item())
 
     finish_time = datetime.now()
-    cls_report, cm = eval_model_test(model, tesLoader, classes)
+    cls_report, cm = eval_model_test(log_dir, backbone_ver, tesLoader, classes)
     save_history(
-        model,
+        log_dir,
         tra_acc_list,
         val_acc_list,
         loss_list,
@@ -228,4 +250,4 @@ if __name__ == "__main__":
     parser.add_argument("--fullfinetune", type=bool, default=False)
     args = parser.parse_args()
 
-    train(backbone_ver=args.model, epoch_num=1)
+    train(backbone_ver=args.model, epoch_num=2)  # 2 for test

@@ -126,7 +126,7 @@ def valid_path(log_path, latest_log):
     return os.path.exists(dir_path)
 
 
-def load_history(log_dir=results_dir, latest_log=""):
+def load_history(log_dir=LOGS_DIR, latest_log=""):
 
     create_dir(log_dir)
 
@@ -203,14 +203,14 @@ def plot_all(labels_name, latest_log=""):
 
 def save_all(labels_name, latest_log=""):
     if latest_log == "":
-        latest_log, _ = get_latest_log(results_dir)
+        latest_log, _ = get_latest_log(LOGS_DIR)
         latest_log = latest_log[1:]
 
     tra_acc_list, val_acc_list, loss_list, cm = load_history(latest_log=latest_log)
 
-    save_acc(tra_acc_list, val_acc_list, results_dir + "/" + latest_log)
-    save_loss(loss_list, results_dir + "/" + latest_log)
-    save_confusion_matrix(cm, labels_name, save_path=results_dir + "/" + latest_log)
+    save_acc(tra_acc_list, val_acc_list, LOGS_DIR + "/" + latest_log)
+    save_loss(loss_list, LOGS_DIR + "/" + latest_log)
+    save_confusion_matrix(cm, labels_name, save_path=LOGS_DIR + "/" + latest_log)
     print("Re-saved.")
 
 
