@@ -14,33 +14,33 @@ from data import prepare_data, load_data
 from utils import *
 
 
-def eval_model_train(model, trainLoader, tra_acc_list):
+def eval_model_train(model, trainLoader, tra_acc_list: list):
     y_true, y_pred = [], []
     with torch.no_grad():
-        for data in trainLoader:
+        for data in tqdm(trainLoader, desc="Batch evaluation on trainset..."):
             inputs, labels = toCUDA(data["mel"]), toCUDA(data["label"])
-            outputs = model.forward(inputs)
+            outputs: torch.Tensor = model.forward(inputs)
             predicted = torch.max(outputs.data, 1)[1]
             y_true.extend(labels.tolist())
             y_pred.extend(predicted.tolist())
 
     acc = 100.0 * accuracy_score(y_true, y_pred)
-    print(f"Training acc   : {str(round(acc, 2))}%")
+    print(f"\nTraining acc   : {str(round(acc, 2))}%")
     tra_acc_list.append(acc)
 
 
-def eval_model_valid(model, validationLoader, val_acc_list):
+def eval_model_valid(model, validationLoader, val_acc_list: list):
     y_true, y_pred = [], []
     with torch.no_grad():
-        for data in validationLoader:
+        for data in tqdm(validationLoader, desc="Batch evaluation on validset..."):
             inputs, labels = toCUDA(data["mel"]), toCUDA(data["label"])
-            outputs = model.forward(inputs)
+            outputs: torch.Tensor = model.forward(inputs)
             predicted = torch.max(outputs.data, 1)[1]
             y_true.extend(labels.tolist())
             y_pred.extend(predicted.tolist())
 
     acc = 100.0 * accuracy_score(y_true, y_pred)
-    print(f"Validation acc : {str(round(acc, 2))}%")
+    print(f"\nValidation acc : {str(round(acc, 2))}%")
     val_acc_list.append(acc)
 
 
@@ -49,7 +49,7 @@ def eval_model_test(model, testLoader, classes):
     with torch.no_grad():
         for data in testLoader:
             inputs, labels = toCUDA(data["mel"]), toCUDA(data["label"])
-            outputs = model.forward(inputs)
+            outputs: torch.Tensor = model.forward(inputs)
             predicted = torch.max(outputs.data, 1)[1]
             y_true.extend(labels.tolist())
             y_pred.extend(predicted.tolist())
@@ -198,6 +198,7 @@ def train(backbone_ver="squeezenet1_1", epoch_num=40, iteration=10, lr=0.001):
                     loss_list.append(running_loss / iteration)
 
                 running_loss = 0.0
+                pbar.update(1)
 
             eval_model_train(model, traLoader, tra_acc_list)
             eval_model_valid(model, valLoader, val_acc_list)
@@ -223,8 +224,8 @@ if __name__ == "__main__":
     warnings.filterwarnings("ignore")
     parser = argparse.ArgumentParser(description="train")
     parser.add_argument("--model", type=str, default="squeezenet1_1")
-    parser.add_argument("--fl", type=bool, default=True)
-    parser.add_argument("--fullfinetune", type=bool, default=True)
+    parser.add_argument("--fl", type=bool, default=False)
+    parser.add_argument("--fullfinetune", type=bool, default=False)
     args = parser.parse_args()
 
-    train(backbone_ver=args.model, epoch_num=40)
+    train(backbone_ver=args.model, epoch_num=1)

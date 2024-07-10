@@ -49,11 +49,11 @@ class Net:
             for parma in self.model.parameters():
                 parma.requires_grad = self.full_finetune
 
-            self._set__classifier(self, cls_num, linear_output)
+            self._set__classifier(cls_num, linear_output)
             self.model.train()
 
         else:
-            self._set__classifier(self, cls_num, linear_output)
+            self._set__classifier(cls_num, linear_output)
             checkpoint = torch.load(saved_model_path, map_location="cpu")
             if torch.cuda.is_available():
                 checkpoint = torch.load(saved_model_path)

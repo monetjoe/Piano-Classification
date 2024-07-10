@@ -5,7 +5,6 @@ import zipfile
 import requests
 from tqdm import tqdm
 
-data_dir = "./data"
 results_dir = "./logs"
 model_dir = "./model"
 
@@ -24,7 +23,6 @@ def url_download(url: str, fname: str, max_retries=3):
             # Check the response status code (raise an exception if it's not in the range 200-299)
             resp.raise_for_status()
             total = int(resp.headers.get("content-length", 0))
-            create_dir(data_dir)
             with open(fname, "wb") as file, tqdm(
                 desc=fname,
                 total=total,

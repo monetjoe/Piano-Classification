@@ -22,12 +22,20 @@ def transform(example_batch, input_size=300):
 def prepare_data(use_fl: bool):
     print("Preparing data...")
     try:
-        ds = load_dataset("ccmusic-database/pianos")
+        ds = load_dataset(
+            "ccmusic-database/pianos",
+            name="eval",
+            cache_dir="./__pycache__",
+        )
         classes = ds["test"].features["label"].names
         use_hf = True
 
     except ConnectionError:
-        ds = MsDataset.load("ccmusic-database/pianos", subset_name="default")
+        ds = MsDataset.load(
+            "ccmusic-database/pianos",
+            subset_name="eval",
+            cache_dir="./__pycache__",
+        )
         classes = ds["test"]._hf_ds.features["label"].names
         use_hf = False
 
