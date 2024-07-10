@@ -7,110 +7,11 @@ import torch.nn as nn
 import torch.utils.data
 import torch.optim as optim
 from model import Net, FocalLoss
-from functools import partial
 from datetime import datetime
-from torch.utils.data import DataLoader
-from modelscope.msdatasets import MsDataset
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
 from plot import save_acc, save_loss, save_confusion_matrix
-from datasets import load_dataset
-from torchvision.transforms import *
+from data import prepare_data, load_data
 from utils import *
-
-
-def transform(example_batch, input_size=300):
-    compose = Compose(
-        [
-            Resize([input_size, input_size]),
-            RandomAffine(5),
-            ToTensor(),
-            Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-        ]
-    )
-    inputs = [compose(x.convert("RGB")) for x in example_batch["mel"]]
-    example_batch["mel"] = inputs
-    return example_batch
-
-
-def prepare_data():
-    print("Preparing data...")
-    try:
-        ds = load_dataset("ccmusic-database/pianos")
-        classes = ds["test"].features["label"].names
-        use_hf = True
-
-    except ConnectionError:
-        ds = MsDataset.load("ccmusic-database/pianos", subset_name="default")
-        classes = ds["test"]._hf_ds.features["label"].names
-        use_hf = False
-
-    if args.fl:
-        num_samples_in_each_category = {k: 0 for k in classes}
-        for item in ds["train"]:
-            num_samples_in_each_category[classes[item["label"]]] += 1
-
-        print("Data prepared.")
-        return ds, classes, list(num_samples_in_each_category.values()), use_hf
-
-    else:
-        print("Data prepared.")
-        return ds, classes, [], use_hf
-
-
-def load_data(
-    ds,
-    input_size,
-    use_hf,
-    has_bn=False,
-    batch_size=4,
-    shuffle=True,
-    num_workers=2,
-):
-    print("Loadeding data...")
-    bs = batch_size
-    ds_train = ds["train"]
-    ds_valid = ds["validation"]
-    ds_test = ds["test"]
-
-    if not use_hf:
-        ds_train = ds_train._hf_ds
-        ds_valid = ds_valid._hf_ds
-        ds_test = ds_test._hf_ds
-
-    if has_bn:
-        print("The model has bn layer")
-        if bs < 2:
-            print("Switch batch_size >= 2")
-            bs = 2
-
-    trainset = ds_train.with_transform(partial(transform, input_size=input_size))
-    validset = ds_valid.with_transform(partial(transform, input_size=input_size))
-    testset = ds_test.with_transform(partial(transform, input_size=input_size))
-
-    traLoader = DataLoader(
-        trainset,
-        batch_size=bs,
-        shuffle=shuffle,
-        num_workers=num_workers,
-        drop_last=has_bn,
-    )
-    valLoader = DataLoader(
-        validset,
-        batch_size=bs,
-        shuffle=shuffle,
-        num_workers=num_workers,
-        drop_last=has_bn,
-    )
-    tesLoader = DataLoader(
-        testset,
-        batch_size=bs,
-        shuffle=shuffle,
-        num_workers=num_workers,
-        drop_last=has_bn,
-    )
-    print("Data loaded.")
-
-    return traLoader, valLoader, tesLoader
 
 
 def eval_model_train(model, trainLoader, tra_acc_list):
@@ -226,7 +127,7 @@ def train(backbone_ver="squeezenet1_1", epoch_num=40, iteration=10, lr=0.001):
     tra_acc_list, val_acc_list, loss_list, lr_list = [], [], [], []
 
     # load data
-    ds, classes, num_samples, use_hf = prepare_data()
+    ds, classes, num_samples, use_hf = prepare_data(args.fl)
     cls_num = len(classes)
 
     # init model
@@ -270,32 +171,37 @@ def train(backbone_ver="squeezenet1_1", epoch_num=40, iteration=10, lr=0.001):
         print(f"{epoch_str:-^40s}")
         print(f"Learning rate: {lr_str}")
         running_loss = 0.0
-        for i, data in enumerate(traLoader, 0):
-            # get the inputs
-            inputs, labels = toCUDA(data["mel"]), toCUDA(data["label"])
-            # zero the parameter gradients
-            optimizer.zero_grad()
+        with tqdm(total=len(traLoader), unit="batch") as pbar:
+            for i, data in enumerate(traLoader, 0):
+                # get the inputs
+                inputs, labels = toCUDA(data["mel"]), toCUDA(data["label"])
+                # zero the parameter gradients
+                optimizer.zero_grad()
+                # forward + backward + optimize
+                outputs = model.forward(inputs)
+                loss: torch.Tensor = criterion(outputs, labels)
+                loss.backward()
+                optimizer.step()
+                # print statistics
+                running_loss += loss.item()
+                # print every 2000 mini-batches
+                if i % iteration == iteration - 1:
+                    pbar.set_description(
+                        "epoch=%d/%d, lr=%.4f, loss=%.4f"
+                        % (
+                            epoch + 1,
+                            epoch_num,
+                            lr,
+                            running_loss / iteration,
+                        )
+                    )
+                    loss_list.append(running_loss / iteration)
 
-            # forward + backward + optimize
-            outputs = model.forward(inputs)
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
+                running_loss = 0.0
 
-            # print statistics
-            running_loss += loss.item()
-            # print every 2000 mini-batches
-            if i % iteration == iteration - 1:
-                print(
-                    "[%d, %5d] loss: %.4f"
-                    % (epoch + 1, i + 1, running_loss / iteration)
-                )
-                loss_list.append(running_loss / iteration)
-            running_loss = 0.0
-
-        eval_model_train(model, traLoader, tra_acc_list)
-        eval_model_valid(model, valLoader, val_acc_list)
-        scheduler.step(loss.item())
+            eval_model_train(model, traLoader, tra_acc_list)
+            eval_model_valid(model, valLoader, val_acc_list)
+            scheduler.step(loss.item())
 
     finish_time = datetime.now()
     cls_report, cm = eval_model_test(model, tesLoader, classes)
