@@ -40,11 +40,11 @@ python plot.py
 
 ## Results
 A demo result of SqueezeNet fine-tuning:
-|             Results              |                                                            Plots                                                             |
-| :------------------------------: | :--------------------------------------------------------------------------------------------------------------------------: |
-|            Loss curve            | <img src="https://www.modelscope.cn/api/v1/models/ccmusic-database/pianos/repo?Revision=master&FilePath=loss.jpg&View=true"> |
-| Training and validation accuracy | <img src="https://www.modelscope.cn/api/v1/models/ccmusic-database/pianos/repo?Revision=master&FilePath=acc.jpg&View=true">  |
-|         Confusion matrix         | <img src="https://www.modelscope.cn/api/v1/models/ccmusic-database/pianos/repo?Revision=master&FilePath=mat.jpg&View=true">  |
+|             Results              |                                      Plots                                       |
+| :------------------------------: | :------------------------------------------------------------------------------: |
+|            Loss curve            | <img src="https://huggingface.co/ccmusic-database/pianos/resolve/main/loss.jpg"> |
+| Training and validation accuracy | <img src="https://huggingface.co/ccmusic-database/pianos/resolve/main/acc.jpg">  |
+|         Confusion matrix         | <img src="https://huggingface.co/ccmusic-database/pianos/resolve/main/mat.jpg">  |
 
 ## Cite
 ```bibtex
