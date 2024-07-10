@@ -28,7 +28,9 @@ python train.py --model squeezenet1_1 --fullfinetune True
 ```
 `--fullfinetune True` means full finetune, `False` means linear probing
 
-<a href="https://www.modelscope.cn/datasets/monetjoe/cv_backbones/dataPeview" target="_blank">Supported backbones</a>
+#### Supported backbones
+<a href="https://huggingface.co/datasets/monetjoe/cv_backbones" target="_blank">Mirror 1</a><br>
+<a href="https://www.modelscope.cn/datasets/monetjoe/cv_backbones/dataPeview" target="_blank">Mirror 2</a>
 
 ### Plot results
 After finishing the training, use the below command to plot the latest results:
