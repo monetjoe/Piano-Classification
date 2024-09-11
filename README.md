@@ -49,18 +49,12 @@ A demo result of SqueezeNet fine-tuning:
 
 ## Cite
 ```bibtex
-@inproceedings{DBLP:journals/corr/abs-2310-04722,
-  author    = {Monan Zhou and
-               Shangda Wu and
-               Shaohua Ji and
-               Zijin Li and
-               Wei Li},
+@article{Zhou2023AHE,
+  author    = {Monan Zhou and Shangda Wu and Shaohua Ji and Zijin Li and Wei Li},
   title     = {A Holistic Evaluation of Piano Sound Quality},
   booktitle = {Proceedings of the 10th Conference on Sound and Music Technology (CSMT)},
   year      = {2023},
   publisher = {Springer Singapore},
-  address   = {Singapore},
-  timestamp = {Fri, 20 Oct 2023 12:04:38 +0200},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
+  address   = {Singapore}
 }
 ```
