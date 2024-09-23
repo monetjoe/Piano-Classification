@@ -36,7 +36,7 @@ def prepare_data(use_fl: bool):
             subset_name="eval",
             cache_dir="./__pycache__",
         )
-        classes = ds["test"]._hf_ds.features["label"].names
+        classes = ds["test"].features["label"].names
         use_hf = False
 
     if use_fl:

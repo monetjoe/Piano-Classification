@@ -78,7 +78,7 @@ class Net:
         backbone_list = MsDataset.load(
             "monetjoe/cv_backbones",
             subset_name="default",
-            split="train",
+            split="v1",
         )
         backbone = self._get_backbone(backbone_ver, backbone_list)
         m_type = str(backbone["type"])
