@@ -6,6 +6,7 @@ from tqdm import tqdm
 
 LOGS_DIR = "./logs"
 MODEL_DIR = "./model"
+os.environ["MODELSCOPE_LOG_LEVEL"] = "40"
 
 
 def create_dir(dir_path: str):

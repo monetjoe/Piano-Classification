@@ -1,9 +1,10 @@
 scikit-learn
-librosa
 matplotlib
-pandas
-tqdm
 autopep8
 datasets
-pillow==10.3
+librosa
+pandas
+tqdm
 bs4
+modelscope==1.18.1
+numpy==1.26.4

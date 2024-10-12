@@ -6,12 +6,12 @@ import numpy as np
 import torch.nn as nn
 import torch.utils.data
 import torch.optim as optim
+from utils import *
 from datetime import datetime
 from model import Net, FocalLoss, models
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
 from plot import save_acc, save_loss, save_confusion_matrix
 from data import prepare_data, load_data
-from utils import *
 
 
 def eval_model_train(model, trainLoader, tra_acc_list: list):
@@ -249,5 +249,4 @@ if __name__ == "__main__":
     parser.add_argument("--fl", type=bool, default=False)
     parser.add_argument("--fullfinetune", type=bool, default=False)
     args = parser.parse_args()
-
     train(backbone_ver=args.model, epoch_num=2)  # 2 for test
