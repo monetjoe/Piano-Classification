@@ -31,8 +31,8 @@ python train.py --model squeezenet1_1 --fullfinetune True --fl True
 `--fl True` means using focal loss
 
 #### Supported backbones
-<a href="https://huggingface.co/datasets/monetjoe/cv_backbones" target="_blank">Mirror 1</a><br>
-<a href="https://www.modelscope.cn/datasets/monetjoe/cv_backbones/dataPeview" target="_blank">Mirror 2</a>
+| <a href="https://huggingface.co/datasets/monetjoe/cv_backbones" target="_blank">Mirror 1</a> | <a href="https://www.modelscope.cn/datasets/monetjoe/cv_backbones/dataPeview" target="_blank">Mirror 2</a> |
+| :------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------: |
 
 ### Plot results
 After finishing the training, use the below command to plot the latest results:
@@ -50,7 +50,7 @@ A demo result of SqueezeNet fine-tuning:
 
 ## Cite
 ```bibtex
-@article{Zhou2023AHE,
+@inproceedings{Zhou2023AHE,
   author    = {Monan Zhou and Shangda Wu and Shaohua Ji and Zijin Li and Wei Li},
   title     = {A Holistic Evaluation of Piano Sound Quality},
   booktitle = {Proceedings of the 10th Conference on Sound and Music Technology (CSMT)},
