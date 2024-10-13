@@ -19,25 +19,22 @@ def transform(example_batch, input_size=300):
 
 
 def prepare_data(use_fl: bool):
-    print("Preparing data...")
+    print("Preparing & loading data...")
     ds = MsDataset.load(
         "ccmusic-database/pianos",
         subset_name="eval",
         cache_dir="./__pycache__",
     )
     classes = ds["test"].features["label"].names
-
+    sizes = []
     if use_fl:
         num_samples_in_each_category = {k: 0 for k in classes}
         for item in ds["train"]:
             num_samples_in_each_category[classes[item["label"]]] += 1
 
-        print("Data prepared.")
-        return ds, classes, list(num_samples_in_each_category.values())
+        sizes = list(num_samples_in_each_category.values())
 
-    else:
-        print("Data prepared.")
-        return ds, classes, []
+    return ds, classes, sizes
 
 
 def load_data(
@@ -48,7 +45,6 @@ def load_data(
     shuffle=True,
     num_workers=2,
 ):
-    print("Loadeding data...")
     bs = batch_size
     if has_bn:
         print("The model has bn layer")
@@ -82,5 +78,4 @@ def load_data(
         drop_last=has_bn,
     )
 
-    print("Data loaded.")
     return traLoader, valLoader, tesLoader

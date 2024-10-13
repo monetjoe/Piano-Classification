@@ -1,7 +1,4 @@
 modelscope[framework]==1.18.1
 numpy==1.24.4
-scikit-learn
 matplotlib
 librosa
-pandas
-tqdm
