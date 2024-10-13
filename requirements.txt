@@ -1,6 +1,6 @@
---index-url https://download.pytorch.org/whl/cu118
---extra-index-url https://pypi.tuna.tsinghua.edu.cn/simple
-torch==2.4.1
-torchvision==0.19.1
+torch==2.3.1+cu118
+torchvision==0.18.1+cu118
+-f https://mirrors.aliyun.com/pytorch-wheels/cu118
 matplotlib
 modelscope[framework]==1.18.1
+-i https://pypi.tuna.tsinghua.edu.cn/simple
