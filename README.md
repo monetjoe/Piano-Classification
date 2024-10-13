@@ -9,10 +9,10 @@ Classify piano sound quality by fine-tuned pre-trained CNN models.
 
 ## Requirements
 ```bash
-conda create -n pianos python=3.10 -y
-conda activate pianos
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu113
-pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+conda create -n py311 python=3.11 -y
+conda activate py311
+pip install torch==2.4.1 torchvision==0.19.1 --index-url https://download.pytorch.org/whl/cu118
+pip install -r requirements.txt
 ```
 
 ## Usage
@@ -42,11 +42,11 @@ python plot.py
 
 ## Results
 A demo result of SqueezeNet fine-tuning:
-|             Results              |                                           Plots                                           |
-| :------------------------------: | :---------------------------------------------------------------------------------------: |
-|            Loss curve            | ![image](https://github.com/user-attachments/assets/f6893fdd-9315-44c7-850f-6a29ebdc8c15) |
-| Training and validation accuracy | ![image](https://github.com/user-attachments/assets/07c7fb83-156c-40f8-9372-f96a818eeb39) |
-|         Confusion matrix         | ![image](https://github.com/user-attachments/assets/284b82e5-bb45-44f1-8bdc-7d2832d3e6c3) |
+|             Results              |                                        Plots                                         |
+| :------------------------------: | :----------------------------------------------------------------------------------: |
+|            Loss curve            | ![](https://github.com/user-attachments/assets/f6893fdd-9315-44c7-850f-6a29ebdc8c15) |
+| Training and validation accuracy | ![](https://github.com/user-attachments/assets/07c7fb83-156c-40f8-9372-f96a818eeb39) |
+|         Confusion matrix         | ![](https://github.com/user-attachments/assets/284b82e5-bb45-44f1-8bdc-7d2832d3e6c3) |
 
 ## Cite
 ```bibtex
