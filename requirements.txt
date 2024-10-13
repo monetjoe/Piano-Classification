@@ -1,6 +1,6 @@
 --index-url https://download.pytorch.org/whl/cu118
+--extra-index-url https://pypi.tuna.tsinghua.edu.cn/simple
 torch==2.4.1
 torchvision==0.19.1
--i https://pypi.tuna.tsinghua.edu.cn/simple
 matplotlib
 modelscope[framework]==1.18.1
