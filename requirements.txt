@@ -1,3 +1,0 @@
-modelscope[framework]==1.18.1
-matplotlib
-librosa

@@ -12,7 +12,7 @@ Classify piano sound quality by fine-tuned pre-trained CNN models.
 conda create -n py311 python=3.11 -y
 conda activate py311
 pip install torch==2.4.1 torchvision==0.19.1 --index-url https://download.pytorch.org/whl/cu118
-pip install -r requirements.txt
+pip install matplotlib modelscope[framework]==1.18.1
 ```
 
 ## Usage

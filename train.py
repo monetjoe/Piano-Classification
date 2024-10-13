@@ -85,10 +85,10 @@ def save_log(
 ):
     logs = f"""
 Backbone     : {args.model}
-Start time   : {start_time}"
-Finish time  : {finish_time}"
-Time cost    : {(finish_time - start_time).seconds}s"
-Full finetune: {args.fullfinetune}"
+Start time   : {start_time}
+Finish time  : {finish_time}
+Time cost    : {(finish_time - start_time).seconds}s
+Full finetune: {args.fullfinetune}
 Focal loss   : {args.fl}"""
 
     with open(f"{log_dir}/result.log", "w", encoding="utf-8") as f:
@@ -246,7 +246,7 @@ if __name__ == "__main__":
     warnings.filterwarnings("ignore")
     parser = argparse.ArgumentParser(description="train")
     parser.add_argument("--model", type=str, default="squeezenet1_1")
-    parser.add_argument("--fl", type=bool, default=False)
+    parser.add_argument("--fl", type=bool, default=True)
     parser.add_argument("--fullfinetune", type=bool, default=False)
     args = parser.parse_args()
     train(backbone_ver=args.model, epoch_num=2)  # 2 for test

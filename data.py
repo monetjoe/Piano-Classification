@@ -1,3 +1,4 @@
+from tqdm import tqdm
 from functools import partial
 from torch.utils.data import DataLoader
 from modelscope.msdatasets import MsDataset
@@ -29,7 +30,7 @@ def prepare_data(use_fl: bool):
     sizes = []
     if use_fl:
         num_samples_in_each_category = {k: 0 for k in classes}
-        for item in ds["train"]:
+        for item in tqdm(ds["train"], desc="Statistics by category for focal loss..."):
             num_samples_in_each_category[classes[item["label"]]] += 1
 
         sizes = list(num_samples_in_each_category.values())
