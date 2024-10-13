@@ -140,13 +140,13 @@ def train(backbone_ver="squeezenet1_1", epoch_num=40, iteration=10, lr=0.001):
     tra_acc_list, val_acc_list, loss_list, lr_list = [], [], [], []
 
     # load data
-    ds, classes, num_samples, use_hf = prepare_data(args.fl)
+    ds, classes, num_samples = prepare_data(args.fl)
     cls_num = len(classes)
 
     # init model
     model = Net(cls_num, m_ver=backbone_ver, full_finetune=args.fullfinetune)
     input_size = model._get_insize()
-    traLoader, valLoader, tesLoader = load_data(ds, input_size, use_hf)
+    traLoader, valLoader, tesLoader = load_data(ds, input_size)
 
     # optimizer and loss
     criterion = FocalLoss(num_samples) if args.fl else nn.CrossEntropyLoss()

@@ -1,10 +1,7 @@
+modelscope[framework]==1.18.1
+numpy==1.24.4
 scikit-learn
 matplotlib
-autopep8
-datasets
 librosa
 pandas
 tqdm
-bs4
-modelscope==1.18.1
-numpy==1.26.4

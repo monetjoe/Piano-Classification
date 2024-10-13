@@ -1,4 +1,3 @@
-from datasets import load_dataset
 from functools import partial
 from torch.utils.data import DataLoader
 from modelscope.msdatasets import MsDataset
@@ -21,23 +20,12 @@ def transform(example_batch, input_size=300):
 
 def prepare_data(use_fl: bool):
     print("Preparing data...")
-    try:
-        ds = load_dataset(
-            "ccmusic-database/pianos",
-            name="eval",
-            cache_dir="./__pycache__",
-        )
-        classes = ds["test"].features["label"].names
-        use_hf = True
-
-    except ConnectionError:
-        ds = MsDataset.load(
-            "ccmusic-database/pianos",
-            subset_name="eval",
-            cache_dir="./__pycache__",
-        )
-        classes = ds["test"].features["label"].names
-        use_hf = False
+    ds = MsDataset.load(
+        "ccmusic-database/pianos",
+        subset_name="eval",
+        cache_dir="./__pycache__",
+    )
+    classes = ds["test"].features["label"].names
 
     if use_fl:
         num_samples_in_each_category = {k: 0 for k in classes}
@@ -45,17 +33,16 @@ def prepare_data(use_fl: bool):
             num_samples_in_each_category[classes[item["label"]]] += 1
 
         print("Data prepared.")
-        return ds, classes, list(num_samples_in_each_category.values()), use_hf
+        return ds, classes, list(num_samples_in_each_category.values())
 
     else:
         print("Data prepared.")
-        return ds, classes, [], use_hf
+        return ds, classes, []
 
 
 def load_data(
-    ds,
-    input_size,
-    use_hf,
+    ds: MsDataset,
+    insize,
     has_bn=False,
     batch_size=4,
     shuffle=True,
@@ -63,24 +50,15 @@ def load_data(
 ):
     print("Loadeding data...")
     bs = batch_size
-    ds_train = ds["train"]
-    ds_valid = ds["validation"]
-    ds_test = ds["test"]
-
-    if not use_hf:
-        ds_train = ds_train._hf_ds
-        ds_valid = ds_valid._hf_ds
-        ds_test = ds_test._hf_ds
-
     if has_bn:
         print("The model has bn layer")
         if bs < 2:
             print("Switch batch_size >= 2")
             bs = 2
 
-    trainset = ds_train.with_transform(partial(transform, input_size=input_size))
-    validset = ds_valid.with_transform(partial(transform, input_size=input_size))
-    testset = ds_test.with_transform(partial(transform, input_size=input_size))
+    trainset = ds["train"].with_transform(partial(transform, input_size=insize))
+    validset = ds["validation"].with_transform(partial(transform, input_size=insize))
+    testset = ds["test"].with_transform(partial(transform, input_size=insize))
 
     traLoader = DataLoader(
         trainset,
@@ -103,6 +81,6 @@ def load_data(
         num_workers=num_workers,
         drop_last=has_bn,
     )
-    print("Data loaded.")
 
+    print("Data loaded.")
     return traLoader, valLoader, tesLoader
