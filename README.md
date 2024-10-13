@@ -9,7 +9,7 @@ Classify piano sound quality by fine-tuned pre-trained CNN models.
 
 ## Requirements
 ```bash
-conda create -n pianos python=3.10 --yes
+conda create -n pianos python=3.10 -y
 conda activate pianos
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu113
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
