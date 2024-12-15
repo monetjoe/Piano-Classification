@@ -6,9 +6,9 @@ from modelscope.msdatasets import MsDataset
 from utils import url_download, create_dir, MODEL_DIR
 
 
-class FocalLoss(nn.CrossEntropyLoss):
+class WCE(nn.CrossEntropyLoss):
     def __init__(self, sample_sizes: list):
-        super(FocalLoss, self).__init__()
+        super(WCE, self).__init__()
         weights = torch.tensor(
             [1.0 / size for size in sample_sizes], dtype=torch.float32
         )

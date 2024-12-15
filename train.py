@@ -8,7 +8,7 @@ import torch.utils.data
 import torch.optim as optim
 from utils import *
 from datetime import datetime
-from model import Net, FocalLoss, models
+from model import Net, WCE, models
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
 from plot import save_acc, save_loss, save_confusion_matrix
 from data import prepare_data, load_data
@@ -89,7 +89,7 @@ Start time   : {start_time}
 Finish time  : {finish_time}
 Time cost    : {(finish_time - start_time).seconds}s
 Full finetune: {args.fullfinetune}
-Focal loss   : {args.fl}"""
+Focal loss   : {args.wce}"""
 
     with open(f"{log_dir}/result.log", "w", encoding="utf-8") as f:
         f.write(cls_report + "\n" + logs + "\n")
@@ -140,7 +140,7 @@ def train(backbone_ver="squeezenet1_1", epoch_num=40, iteration=10, lr=0.001):
     tra_acc_list, val_acc_list, loss_list, lr_list = [], [], [], []
 
     # load data
-    ds, classes, num_samples = prepare_data(args.fl)
+    ds, classes, num_samples = prepare_data(args.wce)
     cls_num = len(classes)
 
     # init model
@@ -149,7 +149,7 @@ def train(backbone_ver="squeezenet1_1", epoch_num=40, iteration=10, lr=0.001):
     traLoader, valLoader, tesLoader = load_data(ds, input_size)
 
     # optimizer and loss
-    criterion = FocalLoss(num_samples) if args.fl else nn.CrossEntropyLoss()
+    criterion = WCE(num_samples) if args.wce else nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr, momentum=0.9)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer,
@@ -246,7 +246,7 @@ if __name__ == "__main__":
     warnings.filterwarnings("ignore")
     parser = argparse.ArgumentParser(description="train")
     parser.add_argument("--model", type=str, default="squeezenet1_1")
-    parser.add_argument("--fl", type=bool, default=True)
+    parser.add_argument("--wce", type=bool, default=True)
     parser.add_argument("--fullfinetune", type=bool, default=False)
     args = parser.parse_args()
     train(backbone_ver=args.model, epoch_num=2)  # 2 for test
